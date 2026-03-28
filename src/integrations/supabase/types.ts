@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      action_flags: {
+        Row: {
+          action_id: string
+          created_at: string
+          flagged_by: string
+          group_id: string
+          id: string
+        }
+        Insert: {
+          action_id: string
+          created_at?: string
+          flagged_by: string
+          group_id: string
+          id?: string
+        }
+        Update: {
+          action_id?: string
+          created_at?: string
+          flagged_by?: string
+          group_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "action_flags_action_id_fkey"
+            columns: ["action_id"]
+            isOneToOne: false
+            referencedRelation: "completed_actions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "action_flags_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       carbon_profiles: {
         Row: {
           answers: Json | null
@@ -107,6 +146,7 @@ export type Database = {
           action_title: string
           co2_grams: number
           completed_at: string
+          flagged: boolean
           id: string
           image_url: string | null
           rating: number | null
@@ -121,6 +161,7 @@ export type Database = {
           action_title: string
           co2_grams?: number
           completed_at?: string
+          flagged?: boolean
           id?: string
           image_url?: string | null
           rating?: number | null
@@ -135,11 +176,68 @@ export type Database = {
           action_title?: string
           co2_grams?: number
           completed_at?: string
+          flagged?: boolean
           id?: string
           image_url?: string | null
           rating?: number | null
           user_id?: string
           user_note?: string | null
+        }
+        Relationships: []
+      }
+      group_members: {
+        Row: {
+          crowns: number
+          group_id: string
+          id: string
+          joined_at: string
+          user_id: string
+        }
+        Insert: {
+          crowns?: number
+          group_id: string
+          id?: string
+          joined_at?: string
+          user_id: string
+        }
+        Update: {
+          crowns?: number
+          group_id?: string
+          id?: string
+          joined_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_members_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      groups: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          invite_code: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          invite_code: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          invite_code?: string
+          name?: string
         }
         Relationships: []
       }
@@ -247,11 +345,53 @@ export type Database = {
         }
         Relationships: []
       }
+      weekly_winners: {
+        Row: {
+          created_at: string
+          group_id: string
+          id: string
+          total_points: number
+          user_id: string
+          week_start: string
+        }
+        Insert: {
+          created_at?: string
+          group_id: string
+          id?: string
+          total_points?: number
+          user_id: string
+          week_start: string
+        }
+        Update: {
+          created_at?: string
+          group_id?: string
+          id?: string
+          total_points?: number
+          user_id?: string
+          week_start?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "weekly_winners_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      get_user_group_id: { Args: { _user_id: string }; Returns: string }
+      is_group_member: {
+        Args: { _group_id: string; _user_id: string }
+        Returns: boolean
+      }
+      lookup_group_by_invite_code: { Args: { _code: string }; Returns: string }
+      resolve_weekly_winners: { Args: never; Returns: undefined }
       vote_report: { Args: { p_report_id: string }; Returns: undefined }
     }
     Enums: {
