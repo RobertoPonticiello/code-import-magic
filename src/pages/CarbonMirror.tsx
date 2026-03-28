@@ -119,18 +119,25 @@ function ResultsView({ answers, answerLabels }: { answers: Record<string, number
   // Save to DB (append to history)
   useEffect(() => {
     if (saved) return;
-    import("@/integrations/supabase/client").then(({ supabase }) => {
-      supabase.auth.getUser().then(({ data }) => {
-        if (!data.user) return;
-        supabase.from("carbon_profiles").insert({
-          user_id: data.user.id,
-          transport, diet, home, shopping, total,
-          answers: answerLabels,
-        });
-        setSaved(true);
+    const saveProfile = async () => {
+      const { supabase } = await import("@/integrations/supabase/client");
+      const { data: authData } = await supabase.auth.getUser();
+      if (!authData.user) return;
+      const { error } = await supabase.from("carbon_profiles").insert({
+        user_id: authData.user.id,
+        transport, diet, home, shopping, total,
+        answers: answerLabels as unknown as import("@/integrations/supabase/types").Json,
       });
-    });
-  }, [saved, transport, diet, home, shopping, total, answerLabels]);
+      if (error) {
+        console.error("Failed to save carbon profile:", error);
+        toast({ title: "Errore nel salvataggio", description: error.message, variant: "destructive" });
+      } else {
+        setSaved(true);
+        toast({ title: "Risultato salvato!", description: "Puoi vedere lo storico nel tuo profilo" });
+      }
+    };
+    saveProfile();
+  }, [saved, transport, diet, home, shopping, total, answerLabels, toast]);
 
   const categories = [
     { name: "Trasporti", value: transport, color: "bg-blue-500", icon: "🚗", pct: (transport / total) * 100 },
