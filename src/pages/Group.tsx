@@ -15,7 +15,7 @@ const fadeUp = {
   visible: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.08 } }),
 };
 
-function NoGroupView({ onCreate, onJoin }: { onCreate: (name: string) => Promise<void>; onJoin: (code: string) => Promise<void> }) {
+function NoGroupView({ onCreate, onJoin }: { onCreate: (name: string) => Promise<any>; onJoin: (code: string) => Promise<any> }) {
   const [mode, setMode] = useState<"idle" | "create" | "join">("idle");
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
