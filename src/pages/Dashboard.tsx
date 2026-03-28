@@ -88,9 +88,9 @@ export function Dashboard() {
       <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={0}>
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-foreground tracking-tight">Buongiorno! 🌿</h1>
+            <h1 className="text-3xl font-bold text-foreground tracking-tight">Buongiorno{user?.user_metadata?.full_name ? `, ${user.user_metadata.full_name.split(' ')[0]}` : ''}! 🌿</h1>
             <p className="text-muted-foreground mt-1">
-              {new Date().toLocaleDateString("it-IT", { weekday: "long", day: "numeric", month: "long" })} — Roma
+              {new Date().toLocaleDateString("it-IT", { weekday: "long", day: "numeric", month: "long" })} — {location.city || "La tua posizione"}
             </p>
           </div>
           <div className="flex items-center gap-2 bg-accent rounded-xl px-4 py-2">
