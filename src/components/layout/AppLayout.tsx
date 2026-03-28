@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   LayoutDashboard, Leaf, Wind, Trophy, MapPin, Footprints,
-  Menu, X, ChevronRight
+  Menu, X, ChevronRight, LogOut
 } from "lucide-react";
 
 const navItems = [
