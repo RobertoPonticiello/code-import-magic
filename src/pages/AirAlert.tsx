@@ -138,7 +138,7 @@ export default function AirAlert() {
           Qualità dell'aria in tempo reale — {location.city || "La tua posizione"}
         </p>
         <p className="text-[10px] text-muted-foreground mt-0.5">
-          Fonte: Open-Meteo Air Quality API (dati reali European AQI)
+          Fonte: Open-Meteo Air Quality API · Indice European AQI
         </p>
       </motion.div>
 
@@ -190,7 +190,7 @@ export default function AirAlert() {
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <Activity className="w-5 h-5 text-primary" />
-                Previsione 24 ore — European AQI (dati reali)
+                Qualità dell'aria nelle prossime 24 ore
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -217,10 +217,10 @@ export default function AirAlert() {
       <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={4}>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[
-            { name: "PM2.5", value: Math.round(aq.pm25 * 10) / 10, unit: "µg/m³", limit: 25, icon: "🫁" },
-            { name: "PM10", value: Math.round(aq.pm10 * 10) / 10, unit: "µg/m³", limit: 50, icon: "💨" },
-            { name: "O₃", value: Math.round(aq.o3 * 10) / 10, unit: "µg/m³", limit: 120, icon: "☀️" },
-            { name: "NO₂", value: Math.round(aq.no2 * 10) / 10, unit: "µg/m³", limit: 40, icon: "🏭" },
+            { name: "Polveri sottili (PM2.5)", value: Math.round(aq.pm25 * 10) / 10, unit: "µg/m³", limit: 25, icon: "🫁" },
+            { name: "Polveri inalabili (PM10)", value: Math.round(aq.pm10 * 10) / 10, unit: "µg/m³", limit: 50, icon: "💨" },
+            { name: "Ozono", value: Math.round(aq.o3 * 10) / 10, unit: "µg/m³", limit: 120, icon: "☀️" },
+            { name: "Biossido di azoto", value: Math.round(aq.no2 * 10) / 10, unit: "µg/m³", limit: 40, icon: "🏭" },
           ].map((p) => {
             const pct = Math.min(100, (p.value / p.limit) * 100);
             const isOk = pct < 80;
