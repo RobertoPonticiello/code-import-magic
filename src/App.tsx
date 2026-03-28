@@ -10,6 +10,7 @@ import CarbonMirror from "./pages/CarbonMirror";
 import AirAlert from "./pages/AirAlert";
 import ImpactStreak from "./pages/ImpactStreak";
 import QuartiereVivo from "./pages/QuartiereVivo";
+import Profile from "./pages/Profile";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import { Leaf } from "lucide-react";
@@ -50,6 +51,7 @@ function AppRoutes() {
       <Route path="/air-alert" element={<ProtectedRoute><AppLayout><AirAlert /></AppLayout></ProtectedRoute>} />
       <Route path="/impact-streak" element={<ProtectedRoute><AppLayout><ImpactStreak /></AppLayout></ProtectedRoute>} />
       <Route path="/quartiere-vivo" element={<ProtectedRoute><AppLayout><QuartiereVivo /></AppLayout></ProtectedRoute>} />
+      <Route path="/profile" element={<ProtectedRoute><AppLayout><Profile /></AppLayout></ProtectedRoute>} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

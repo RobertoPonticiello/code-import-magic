@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import {
-  LayoutDashboard, Leaf, Wind, Trophy, MapPin, Footprints,
+  LayoutDashboard, Leaf, Wind, Trophy, MapPin, Footprints, User,
   Menu, X, ChevronRight, LogOut
 } from "lucide-react";
 
@@ -13,6 +13,7 @@ const navItems = [
   { path: "/air-alert", label: "AirAlert", icon: Wind, desc: "Qualità aria" },
   { path: "/impact-streak", label: "Impact Streak", icon: Trophy, desc: "Sfide & badge" },
   { path: "/quartiere-vivo", label: "Quartiere Vivo", icon: MapPin, desc: "Segnalazioni" },
+  { path: "/profile", label: "Profilo Eco", icon: User, desc: "Il tuo profilo" },
 ];
 
 export function AppLayout({ children }: { children: React.ReactNode }) {

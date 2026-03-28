@@ -1,17 +1,19 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import {
-  Wind, Thermometer, Leaf, Zap, Droplets, TrendingUp, ArrowRight,
-  CheckCircle2, Circle, Flame
+  Wind, Thermometer, Leaf, TrendingUp, ArrowRight,
+  CheckCircle2, Circle, Flame, RefreshCw, MessageSquare
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { Textarea } from "@/components/ui/textarea";
 import { getDailyActions, type EcoAction } from "@/lib/mockData";
 import { useUserLocation } from "@/hooks/useUserLocation";
 import { fetchAirQuality, fetchWeather, type AirQualityData, type WeatherData } from "@/lib/airQualityApi";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -37,15 +39,21 @@ function AqiIndicator({ level, color, pm25 }: { level: string; color: string; pm
   );
 }
 
+const REGENERATE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/regenerate-actions`;
+
 export function Dashboard() {
   const { user } = useAuth();
   const { location } = useUserLocation();
+  const { toast } = useToast();
   const [aqData, setAqData] = useState<AirQualityData | null>(null);
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
-  const [actions] = useState<EcoAction[]>(getDailyActions());
+  const [actions, setActions] = useState<EcoAction[]>(getDailyActions());
   const [completedIds, setCompletedIds] = useState<string[]>([]);
   const [co2Saved, setCo2Saved] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [feedback, setFeedback] = useState("");
+  const [regenerating, setRegenerating] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -58,10 +66,67 @@ export function Dashboard() {
     }).catch(() => setLoading(false));
   }, [location.latitude, location.longitude]);
 
-  const handleComplete = (action: EcoAction) => {
-    if (completedIds.includes(action.id)) return;
-    setCompletedIds((p) => [...p, action.id]);
-    setCo2Saved((p) => p + action.co2_grams);
+  const handleToggle = (action: EcoAction) => {
+    if (completedIds.includes(action.id)) {
+      setCompletedIds((p) => p.filter((id) => id !== action.id));
+      setCo2Saved((p) => p - action.co2_grams);
+    } else {
+      setCompletedIds((p) => [...p, action.id]);
+      setCo2Saved((p) => p + action.co2_grams);
+    }
+  };
+
+  // Save completed actions to localStorage for Profile page
+  useEffect(() => {
+    const completed = actions.filter((a) => completedIds.includes(a.id));
+    localStorage.setItem("eco_completed_actions", JSON.stringify(completed));
+  }, [completedIds, actions]);
+
+  useEffect(() => {
+    if (feedback) localStorage.setItem("eco_last_feedback", feedback);
+  }, [feedback]);
+
+  const handleRegenerate = async () => {
+    if (!feedback.trim()) {
+      toast({ title: "Scrivi un feedback", description: "Dimmi cosa non va nelle azioni attuali", variant: "destructive" });
+      return;
+    }
+    setRegenerating(true);
+    try {
+      const resp = await fetch(REGENERATE_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({
+          currentActions: actions,
+          feedback,
+          userCity: location.city || "Roma",
+        }),
+      });
+
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({ error: "Errore" }));
+        toast({ title: "Errore", description: err.error || "Impossibile rigenerare le azioni", variant: "destructive" });
+        setRegenerating(false);
+        return;
+      }
+
+      const data = await resp.json();
+      if (data.actions?.length) {
+        setActions(data.actions);
+        setCompletedIds([]);
+        setCo2Saved(0);
+        setFeedback("");
+        setShowFeedback(false);
+        toast({ title: "Azioni rigenerate! 🌿", description: "Le nuove azioni sono personalizzate in base al tuo feedback" });
+      }
+    } catch (e) {
+      console.error(e);
+      toast({ title: "Errore di connessione", description: "Riprova più tardi", variant: "destructive" });
+    }
+    setRegenerating(false);
   };
 
   const streakDays = 7;
@@ -72,10 +137,7 @@ export function Dashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-        >
+        <motion.div animate={{ rotate: 360 }} transition={{ duration: 2, repeat: Infinity, ease: "linear" }}>
           <Leaf className="w-12 h-12 text-primary" />
         </motion.div>
       </div>
@@ -189,12 +251,12 @@ export function Dashboard() {
                       </div>
                     </div>
                     <button
-                      onClick={() => handleComplete(action)}
-                      disabled={isDone}
+                      onClick={() => handleToggle(action)}
                       className="shrink-0"
+                      title={isDone ? "Rimuovi completamento" : "Segna come completata"}
                     >
                       {isDone ? (
-                        <CheckCircle2 className="w-7 h-7 text-primary" />
+                        <CheckCircle2 className="w-7 h-7 text-primary hover:text-primary/70 transition-colors" />
                       ) : (
                         <Circle className="w-7 h-7 text-border hover:text-primary transition-colors" />
                       )}
@@ -202,6 +264,49 @@ export function Dashboard() {
                   </motion.div>
                 );
               })}
+
+              {/* Feedback section */}
+              <div className="pt-3 border-t border-border space-y-3">
+                <button
+                  onClick={() => setShowFeedback(!showFeedback)}
+                  className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  {showFeedback ? "Nascondi feedback" : "Dai feedback e rigenera azioni"}
+                </button>
+
+                {showFeedback && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    className="space-y-3"
+                  >
+                    <Textarea
+                      placeholder="Es. 'Non faccio la doccia oggi', 'Non ho l'auto', 'Vorrei azioni più legate al cibo'..."
+                      value={feedback}
+                      onChange={(e) => setFeedback(e.target.value)}
+                      className="text-sm resize-none"
+                      rows={3}
+                    />
+                    <Button
+                      onClick={handleRegenerate}
+                      disabled={regenerating || !feedback.trim()}
+                      size="sm"
+                      className="gap-2"
+                    >
+                      {regenerating ? (
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <RefreshCw className="w-4 h-4" />
+                      )}
+                      {regenerating ? "Rigenerazione in corso..." : "Rigenera azioni con AI"}
+                    </Button>
+                    <p className="text-[10px] text-muted-foreground">
+                      Le stime CO₂ sono basate su fonti ISPRA, EEA ed ENEA
+                    </p>
+                  </motion.div>
+                )}
+              </div>
             </CardContent>
           </Card>
         </motion.div>
@@ -241,6 +346,7 @@ export function Dashboard() {
                 { label: "Allerte aria in tempo reale", path: "/air-alert", icon: "🌡️" },
                 { label: "Sfide e classifiche", path: "/impact-streak", icon: "🏆" },
                 { label: "Segnala un problema", path: "/quartiere-vivo", icon: "📍" },
+                { label: "Il tuo profilo eco", path: "/profile", icon: "🌿" },
               ].map((link) => (
                 <Link
                   key={link.path}
@@ -258,7 +364,7 @@ export function Dashboard() {
           {/* Data source */}
           <div className="text-center text-[10px] text-muted-foreground">
             <p>Dati: Open-Meteo Air Quality + Forecast (live)</p>
-            <p className="mt-0.5">Aggiornato in tempo reale</p>
+            <p className="mt-0.5">Stime CO₂: fonti ISPRA, EEA, ENEA</p>
           </div>
         </motion.div>
       </div>
