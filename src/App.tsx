@@ -10,6 +10,7 @@ import CarbonMirror from "./pages/CarbonMirror";
 import AirAlert from "./pages/AirAlert";
 import ImpactStreak from "./pages/ImpactStreak";
 import QuartiereVivo from "./pages/QuartiereVivo";
+import Profile from "./pages/Profile";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import { Leaf } from "lucide-react";
