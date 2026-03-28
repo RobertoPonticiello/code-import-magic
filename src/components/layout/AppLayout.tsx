@@ -4,8 +4,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   LayoutDashboard, Leaf, Wind, Trophy, MapPin, Footprints, User,
-  Menu, X, ChevronRight, LogOut
+  Menu, X, ChevronRight, LogOut, Sun, Moon
 } from "lucide-react";
+import useTheme from "@/hooks/use-theme";
 
 const navItems = [
   { path: "/", label: "Dashboard", icon: LayoutDashboard, desc: "Panoramica" },
