@@ -122,18 +122,14 @@ export function useGroup() {
 
   const joinGroup = async (inviteCode: string) => {
     if (!user) return null;
-    // Find group by invite code — need a different approach since we can't see groups we're not in
-    // Use an RPC or direct lookup
-    const { data: groupData, error: lookupError } = await supabase
-      .from("groups")
-      .select("id")
-      .eq("invite_code", inviteCode.toUpperCase())
-      .maybeSingle();
+    // Use RPC to lookup group by invite code (bypasses RLS)
+    const { data: groupId, error: lookupError } = await supabase
+      .rpc("lookup_group_by_invite_code", { _code: inviteCode.toUpperCase() });
 
-    if (lookupError || !groupData) throw new Error("Codice invito non valido");
+    if (lookupError || !groupId) throw new Error("Codice invito non valido");
 
     const { error } = await supabase.from("group_members").insert({
-      group_id: groupData.id,
+      group_id: groupId,
       user_id: user.id,
     });
 
