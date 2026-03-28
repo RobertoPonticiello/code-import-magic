@@ -202,30 +202,25 @@ export default function QuartiereVivo() {
             </div>
           ) : (
             <div className="h-72 relative z-0">
-              <MapContainer center={center} zoom={14} className="h-full w-full" scrollWheelZoom={true}>
-                <TileLayer
-                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                />
-                <MapUpdater center={center} />
-                {/* User position */}
-                <Marker position={center} icon={userIcon}>
-                  <Popup>La tua posizione</Popup>
-                </Marker>
-                {/* Report markers */}
-                {filteredReports.map((r) => (
-                  <Marker key={r.id} position={[r.lat, r.lng]} icon={createIcon(reportTypeConfig[r.type].icon)}>
-                    <Popup>
+              <Suspense fallback={<div className="h-full flex items-center justify-center bg-accent"><Loader2 className="w-6 h-6 text-primary animate-spin" /></div>}>
+                <LeafletMap
+                  center={center}
+                  zoom={14}
+                  markers={filteredReports.map((r) => ({
+                    id: r.id,
+                    position: [r.lat, r.lng] as [number, number],
+                    icon: createIcon(reportTypeConfig[r.type].icon),
+                    popupContent: (
                       <div className="text-sm">
                         <p className="font-bold">{r.title}</p>
                         <p className="text-xs text-muted-foreground mt-1">{r.address}</p>
                         <p className="text-xs mt-1">{r.description}</p>
                         <p className="text-xs font-medium mt-1">👍 {r.votes} voti</p>
                       </div>
-                    </Popup>
-                  </Marker>
-                ))}
-              </MapContainer>
+                    ),
+                  }))}
+                />
+              </Suspense>
             </div>
           )}
         </Card>
