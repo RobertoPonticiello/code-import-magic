@@ -22,29 +22,9 @@ const statusConfig = {
   risolta: { label: "Risolta", icon: CheckCircle, color: "text-emerald-500 bg-emerald-500/10" },
 };
 
-// Custom marker icons
+// Custom marker icon helper
 function createIcon(emoji: string) {
-  return L.divIcon({
-    html: `<div style="font-size:24px;text-align:center;line-height:1">${emoji}</div>`,
-    className: "",
-    iconSize: [30, 30],
-    iconAnchor: [15, 15],
-  });
-}
-
-const userIcon = L.divIcon({
-  html: `<div style="width:16px;height:16px;background:hsl(199,89%,48%);border:3px solid white;border-radius:50%;box-shadow:0 0 8px rgba(0,0,0,0.3)"></div>`,
-  className: "",
-  iconSize: [16, 16],
-  iconAnchor: [8, 8],
-});
-
-function MapUpdater({ center }: { center: [number, number] }) {
-  const map = useMap();
-  useEffect(() => {
-    map.setView(center, 14);
-  }, [center, map]);
-  return null;
+  return createDivIcon(`<div style="font-size:24px;text-align:center;line-height:1">${emoji}</div>`);
 }
 
 function ReportCard({ report, onVote }: { report: CommunityReport; onVote: (id: string) => void }) {
