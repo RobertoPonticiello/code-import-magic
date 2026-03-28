@@ -1,15 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, ThumbsUp, Clock, AlertTriangle, CheckCircle, Filter, X, Send, MapPin, Loader2 } from "lucide-react";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { useUserLocation } from "@/hooks/useUserLocation";
 import { getCommunityReports, reportTypeConfig, severityConfig, type CommunityReport } from "@/lib/mockData";
+import { createDivIcon } from "@/components/LeafletMap";
+
+const LeafletMap = lazy(() => import("@/components/LeafletMap"));
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -22,29 +22,9 @@ const statusConfig = {
   risolta: { label: "Risolta", icon: CheckCircle, color: "text-emerald-500 bg-emerald-500/10" },
 };
 
-// Custom marker icons
+// Custom marker icon helper
 function createIcon(emoji: string) {
-  return L.divIcon({
-    html: `<div style="font-size:24px;text-align:center;line-height:1">${emoji}</div>`,
-    className: "",
-    iconSize: [30, 30],
-    iconAnchor: [15, 15],
-  });
-}
-
-const userIcon = L.divIcon({
-  html: `<div style="width:16px;height:16px;background:hsl(199,89%,48%);border:3px solid white;border-radius:50%;box-shadow:0 0 8px rgba(0,0,0,0.3)"></div>`,
-  className: "",
-  iconSize: [16, 16],
-  iconAnchor: [8, 8],
-});
-
-function MapUpdater({ center }: { center: [number, number] }) {
-  const map = useMap();
-  useEffect(() => {
-    map.setView(center, 14);
-  }, [center, map]);
-  return null;
+  return createDivIcon(`<div style="font-size:24px;text-align:center;line-height:1">${emoji}</div>`);
 }
 
 function ReportCard({ report, onVote }: { report: CommunityReport; onVote: (id: string) => void }) {
@@ -222,30 +202,25 @@ export default function QuartiereVivo() {
             </div>
           ) : (
             <div className="h-72 relative z-0">
-              <MapContainer center={center} zoom={14} className="h-full w-full" scrollWheelZoom={true}>
-                <TileLayer
-                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                />
-                <MapUpdater center={center} />
-                {/* User position */}
-                <Marker position={center} icon={userIcon}>
-                  <Popup>La tua posizione</Popup>
-                </Marker>
-                {/* Report markers */}
-                {filteredReports.map((r) => (
-                  <Marker key={r.id} position={[r.lat, r.lng]} icon={createIcon(reportTypeConfig[r.type].icon)}>
-                    <Popup>
+              <Suspense fallback={<div className="h-full flex items-center justify-center bg-accent"><Loader2 className="w-6 h-6 text-primary animate-spin" /></div>}>
+                <LeafletMap
+                  center={center}
+                  zoom={14}
+                  markers={filteredReports.map((r) => ({
+                    id: r.id,
+                    position: [r.lat, r.lng] as [number, number],
+                    icon: createIcon(reportTypeConfig[r.type].icon),
+                    popupContent: (
                       <div className="text-sm">
                         <p className="font-bold">{r.title}</p>
                         <p className="text-xs text-muted-foreground mt-1">{r.address}</p>
                         <p className="text-xs mt-1">{r.description}</p>
                         <p className="text-xs font-medium mt-1">👍 {r.votes} voti</p>
                       </div>
-                    </Popup>
-                  </Marker>
-                ))}
-              </MapContainer>
+                    ),
+                  }))}
+                />
+              </Suspense>
             </div>
           )}
         </Card>
