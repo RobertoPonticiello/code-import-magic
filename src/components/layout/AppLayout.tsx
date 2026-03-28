@@ -13,7 +13,7 @@ const navItems = [
   { path: "/", label: "Dashboard", icon: LayoutDashboard, desc: "Panoramica" },
   { path: "/carbon-mirror", label: "Carbon Mirror", icon: Footprints, desc: "La tua impronta" },
   { path: "/air-alert", label: "AirAlert", icon: Wind, desc: "Qualità aria" },
-  { path: "/impact-streak", label: "Impact Streak", icon: Trophy, desc: "Sfide & badge" },
+  { path: "/impact-streak", label: "Classifica", icon: Trophy, desc: "Premi settimanali" },
   { path: "/action-history", label: "Diario Azioni", icon: BookOpen, desc: "Storico giornaliero" },
   { path: "/group", label: "Il Mio Gruppo", icon: Users, desc: "Sfida i tuoi amici" },
   { path: "/eco-shop", label: "EcoShop", icon: ShoppingBag, desc: "Brand eco in sconto" },
