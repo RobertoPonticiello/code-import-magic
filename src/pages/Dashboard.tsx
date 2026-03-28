@@ -3,8 +3,9 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import {
   Wind, Thermometer, Leaf, TrendingUp, ArrowRight,
-  CheckCircle2, Circle, Flame, RefreshCw, MessageSquare
+  CheckCircle2, Circle, Flame, RefreshCw, MessageSquare, Euro
 } from "lucide-react";
+import { co2GramsToEuros, formatEuros } from "@/lib/savingsUtils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -124,6 +125,8 @@ export function Dashboard() {
   const co2SavedKg = todayCo2 / 1000;
   const goalProgress = Math.min(100, (co2SavedKg / dailyGoalKg) * 100);
   const completedCount = actions.filter((a) => isCompleted(a.title)).length;
+  const eurosSavedToday = co2GramsToEuros(todayCo2);
+  const totalEurosSaved = co2GramsToEuros(stats?.total_co2_grams || 0);
 
   if (loading) {
     return (
@@ -238,6 +241,7 @@ export function Dashboard() {
                       <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{action.description}</p>
                       <div className="flex items-center gap-3 mt-1">
                         <span className="text-xs font-bold text-primary">-{action.co2_grams}g CO₂</span>
+                        <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">~{formatEuros(co2GramsToEuros(action.co2_grams))}</span>
                         <span className="text-[10px] text-muted-foreground uppercase">{action.difficulty}</span>
                       </div>
                     </div>
@@ -321,9 +325,15 @@ export function Dashboard() {
                   <p className="text-[10px] text-muted-foreground uppercase">azioni fatte</p>
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                Equivale a{" "}
-                <span className="font-bold text-foreground">{(co2SavedKg * 5.5).toFixed(0)} km</span> non percorsi in auto
+              <div className="bg-card/80 backdrop-blur rounded-lg p-3 text-center">
+                <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{formatEuros(eurosSavedToday)}</p>
+                <p className="text-[10px] text-muted-foreground uppercase">€ risparmiati oggi</p>
+              </div>
+              <p className="text-xs text-muted-foreground leading-relaxed col-span-full">
+                Equivale a <span className="font-bold text-foreground">{(co2SavedKg * 5.5).toFixed(0)} km</span> non percorsi in auto
+                {totalEurosSaved > 0 && (
+                  <> · Totale risparmiato: <span className="font-bold text-emerald-600 dark:text-emerald-400">{formatEuros(totalEurosSaved)}</span></>
+                )}
               </p>
             </CardContent>
           </Card>

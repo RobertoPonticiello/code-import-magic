@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Trophy, Flame, Star, Medal, Lock, TrendingUp, Target, Users, Loader2 } from "lucide-react";
+import { Trophy, Flame, Star, Medal, Lock, TrendingUp, Target, Users, Loader2, Euro } from "lucide-react";
+import { co2GramsToEuros, formatEuros } from "@/lib/savingsUtils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { getBadges, getWeeklyChallenges } from "@/lib/mockData";
@@ -148,9 +149,10 @@ function WeeklyChallenges() {
                   </div>
                   <Progress value={pct} className="h-2.5" />
                 </div>
-                <p className="text-[10px] text-primary font-medium">
-                  Potenziale risparmio: {(challenge.co2_potential / 1000).toFixed(1)}kg CO₂
-                </p>
+                <div className="flex items-center gap-3 text-[10px] font-medium">
+                  <span className="text-primary">Potenziale: {(challenge.co2_potential / 1000).toFixed(1)}kg CO₂</span>
+                  <span className="text-emerald-600 dark:text-emerald-400">~{formatEuros(co2GramsToEuros(challenge.co2_potential))}</span>
+                </div>
               </CardContent>
             </Card>
           </motion.div>
@@ -167,11 +169,12 @@ export default function ImpactStreak() {
   const xp = stats?.xp || 0;
   const levelInfo = getLevel(xp);
 
+  const totalEuros = co2GramsToEuros(stats?.total_co2_grams || 0);
   const statCards = [
     { label: "Streak Corrente", value: `${stats?.streak_days || 0} giorni`, icon: Flame, color: "text-orange-600 dark:text-orange-400" },
     { label: "Azioni Totali", value: `${stats?.total_actions || 0}`, icon: Star, color: "text-amber-600 dark:text-amber-400" },
     { label: "CO₂ Risparmiata", value: `${((stats?.total_co2_grams || 0) / 1000).toFixed(1)} kg`, icon: TrendingUp, color: "text-primary" },
-    { label: "XP Totali", value: `${xp}`, icon: Medal, color: "text-blue-600 dark:text-blue-400" },
+    { label: "€ Risparmiati", value: formatEuros(totalEuros), icon: Euro, color: "text-emerald-600 dark:text-emerald-400" },
   ];
 
   return (
