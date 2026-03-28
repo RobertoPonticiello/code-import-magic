@@ -3,13 +3,14 @@ import { motion } from "framer-motion";
 import {
   Leaf, MapPin, Trophy, Flame, TrendingUp, Zap,
   Droplets, ShoppingBag, Car, Utensils, Home, Award,
-  BarChart3, Target, TreePine, Recycle, Loader2
+  BarChart3, Target, TreePine, Recycle, Loader2, History
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserStats, useAllCompletedActions, useCarbonProfile } from "@/hooks/useUserData";
 import { getBadges } from "@/lib/mockData";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -47,7 +48,7 @@ export default function Profile() {
   const { user } = useAuth();
   const { stats, loading: statsLoading } = useUserStats();
   const { actions: recentActions, loading: actionsLoading } = useAllCompletedActions();
-  const { profile: carbonProfile } = useCarbonProfile();
+  const { profile: carbonProfile, history: carbonHistory } = useCarbonProfile();
   const badges = getBadges();
 
   const totalCo2Kg = (stats?.total_co2_grams || 0) / 1000;
