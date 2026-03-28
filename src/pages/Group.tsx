@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Users, Crown, Copy, LogOut, Plus, KeyRound, Flag, Star, Loader2, AlertTriangle, Check } from "lucide-react";
+import { Users, Crown, Copy, LogOut, Plus, KeyRound, Flag, Star, Loader2, AlertTriangle, Check, Coins, Wallet, TrendingUp, TrendingDown } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useGroup, useGroupActions, useGroupLeaderboard } from "@/hooks/useGroup";
+import { useJackpot } from "@/hooks/useJackpot";
 import { co2GramsToEuros, formatEuros } from "@/lib/savingsUtils";
 
 const fadeUp = {
@@ -100,8 +101,11 @@ export default function Group() {
   const { actions, loading: actionsLoading, flagAction } = useGroupActions();
   const { leaderboard } = useGroupLeaderboard(members, actions);
   const { toast } = useToast();
+  const memberIds = members.map((m) => m.user_id);
+  const { jackpot, userHasJoined, totalPot, proposeJackpot, joinJackpot, cancelJackpot, awardWinner, getMemberBalance } = useJackpot(group?.id || null, memberIds);
   const [copied, setCopied] = useState(false);
   const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
+  const [jackpotAmount, setJackpotAmount] = useState("2");
   const [tab, setTab] = useState<"classifica" | "feed">("classifica");
 
   if (loading) {
