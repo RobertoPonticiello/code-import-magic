@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import {
   Leaf, MapPin, Trophy, Flame, TrendingUp, Zap,
   Droplets, ShoppingBag, Car, Utensils, Home, Award,
-  BarChart3, Target, TreePine, Recycle, Loader2, History, Euro, Crown
+  BarChart3, Target, TreePine, Recycle, Loader2, History, Euro, Crown, Coins
 } from "lucide-react";
 import { co2GramsToEuros, formatEuros, annualSavingsFromProfile, co2ToEurosByCategory } from "@/lib/savingsUtils";
 import { Card, CardContent } from "@/components/ui/card";
