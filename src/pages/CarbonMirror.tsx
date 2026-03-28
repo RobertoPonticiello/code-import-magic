@@ -260,46 +260,52 @@ function ResultsView({ answers, answerLabels }: { answers: Record<string, number
         </CardContent>
       </Card>
 
-      {/* Economic Savings */}
+      {/* Economic Impact */}
       {(() => {
         const savings = annualSavingsFromProfile({ transport, diet, home, shopping, total });
-        const hasSavings = savings.totalAnnual > 0;
+        const isPositive = savings.totalAnnual >= 0;
+        const categories = [
+          { label: "Trasporti", value: savings.byCategory.transport, icon: "🚗" },
+          { label: "Alimentazione", value: savings.byCategory.diet, icon: "🍽️" },
+          { label: "Casa", value: savings.byCategory.home, icon: "🏠" },
+          { label: "Consumi", value: savings.byCategory.shopping, icon: "🛍️" },
+        ];
         return (
-          <Card className="border-emerald-500/20 bg-gradient-to-br from-emerald-500/5 to-emerald-500/0">
+          <Card className={isPositive ? "border-emerald-500/20 bg-gradient-to-br from-emerald-500/5 to-transparent" : "border-red-500/20 bg-gradient-to-br from-red-500/5 to-transparent"}>
             <CardContent className="p-6 space-y-4">
               <h3 className="font-bold text-foreground flex items-center gap-2">
-                <Euro className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                Risparmio Economico Stimato
+                <Euro className={`w-5 h-5 ${isPositive ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}`} />
+                {isPositive ? "Risparmio Economico Stimato" : "Costo Extra Stimato"}
               </h3>
-              {hasSavings ? (
-                <>
-                  <div className="text-center py-2">
-                    <p className="text-4xl font-bold text-emerald-600 dark:text-emerald-400">{formatEuros(savings.totalAnnual)}</p>
-                    <p className="text-sm text-muted-foreground mt-1">di risparmio annuo rispetto alla media italiana</p>
+              <div className="text-center py-2">
+                <p className={`text-4xl font-bold ${isPositive ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}`}>
+                  {isPositive ? "+" : ""}{formatEuros(savings.totalAnnual)}
+                </p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {isPositive
+                    ? "di risparmio annuo rispetto alla media italiana"
+                    : "di spesa extra annua rispetto alla media italiana"}
+                </p>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                {categories.map((cat) => (
+                  <div key={cat.label} className="bg-card rounded-lg p-3 text-center border border-border">
+                    <span className="text-lg">{cat.icon}</span>
+                    <p className={`text-sm font-bold mt-1 ${cat.value >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}`}>
+                      {cat.value > 0 ? "+" : ""}{formatEuros(cat.value)}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground">{cat.label}/anno</p>
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    {[
-                      { label: "Trasporti", value: savings.byCategory.transport, icon: "🚗" },
-                      { label: "Alimentazione", value: savings.byCategory.diet, icon: "🍽️" },
-                      { label: "Casa", value: savings.byCategory.home, icon: "🏠" },
-                      { label: "Consumi", value: savings.byCategory.shopping, icon: "🛍️" },
-                    ].map((cat) => (
-                      <div key={cat.label} className="bg-card rounded-lg p-3 text-center border border-border">
-                        <span className="text-lg">{cat.icon}</span>
-                        <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400 mt-1">{formatEuros(cat.value)}</p>
-                        <p className="text-[10px] text-muted-foreground">{cat.label}/anno</p>
-                      </div>
-                    ))}
-                  </div>
-                  <p className="text-[10px] text-muted-foreground">
-                    Stime basate su costi medi italiani: carburante (MASE 2024), bollette (ARERA), alimentazione (ISTAT)
-                  </p>
-                </>
-              ) : (
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  La tua impronta è sopra la media — riduci le emissioni per iniziare a risparmiare! 💪
+                ))}
+              </div>
+              {!isPositive && (
+                <p className="text-sm text-center text-red-600 dark:text-red-400 font-medium">
+                  ⚠️ Stai spendendo di più della media — segui i consigli AI per risparmiare!
                 </p>
               )}
+              <p className="text-[10px] text-muted-foreground">
+                Stime basate su costi medi italiani: carburante (MASE 2024), bollette (ARERA), alimentazione (ISTAT)
+              </p>
             </CardContent>
           </Card>
         );
