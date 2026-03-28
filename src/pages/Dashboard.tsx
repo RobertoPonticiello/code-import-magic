@@ -8,7 +8,10 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { fetchEnvData, getDailyActions, type EnvData, type EcoAction } from "@/lib/mockData";
+import { getDailyActions, type EcoAction } from "@/lib/mockData";
+import { useUserLocation } from "@/hooks/useUserLocation";
+import { fetchAirQuality, fetchWeather, type AirQualityData, type WeatherData } from "@/lib/airQualityApi";
+import { useAuth } from "@/contexts/AuthContext";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
