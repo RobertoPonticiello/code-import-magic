@@ -257,7 +257,7 @@ export function Dashboard() {
 
           {/* Data source */}
           <div className="text-center text-[10px] text-muted-foreground">
-            <p>Dati: {envData?.source}</p>
+            <p>Dati: Open-Meteo Air Quality + Forecast (live)</p>
             <p className="mt-0.5">Aggiornato in tempo reale</p>
           </div>
         </motion.div>
