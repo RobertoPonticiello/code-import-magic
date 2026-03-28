@@ -116,18 +116,16 @@ function ResultsView({ answers, answerLabels }: { answers: Record<string, number
   const [saved, setSaved] = useState(false);
   const { toast } = useToast();
 
-  // Save to DB
+  // Save to DB (append to history)
   useEffect(() => {
     if (saved) return;
     import("@/integrations/supabase/client").then(({ supabase }) => {
       supabase.auth.getUser().then(({ data }) => {
         if (!data.user) return;
-        supabase.from("carbon_profiles").delete().eq("user_id", data.user.id).then(() => {
-          supabase.from("carbon_profiles").insert({
-            user_id: data.user!.id,
-            transport, diet, home, shopping, total,
-            answers: answerLabels,
-          });
+        supabase.from("carbon_profiles").insert({
+          user_id: data.user.id,
+          transport, diet, home, shopping, total,
+          answers: answerLabels,
         });
         setSaved(true);
       });

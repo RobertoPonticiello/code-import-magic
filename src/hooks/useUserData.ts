@@ -197,52 +197,49 @@ export interface CarbonProfileData {
   answers: Record<string, any>;
 }
 
+export interface CarbonProfileEntry extends CarbonProfileData {
+  created_at: string;
+}
+
 export function useCarbonProfile() {
   const { user } = useAuth();
   const [profile, setProfile] = useState<CarbonProfileData | null>(null);
+  const [history, setHistory] = useState<CarbonProfileEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) { setProfile(null); setLoading(false); return; }
+    if (!user) { setProfile(null); setHistory([]); setLoading(false); return; }
     supabase
       .from("carbon_profiles")
       .select("*")
       .eq("user_id", user.id)
-      .order("updated_at", { ascending: false })
-      .limit(1)
-      .maybeSingle()
+      .order("created_at", { ascending: false })
       .then(({ data }) => {
-        if (data) {
+        if (data && data.length > 0) {
+          const latest = data[0];
           setProfile({
-            transport: data.transport,
-            diet: data.diet,
-            home: data.home,
-            shopping: data.shopping,
-            total: data.total,
-            answers: (data.answers as Record<string, any>) || {},
+            transport: latest.transport,
+            diet: latest.diet,
+            home: latest.home,
+            shopping: latest.shopping,
+            total: latest.total,
+            answers: (latest.answers as Record<string, any>) || {},
           });
+          setHistory(data.map((d: any) => ({
+            transport: d.transport,
+            diet: d.diet,
+            home: d.home,
+            shopping: d.shopping,
+            total: d.total,
+            answers: (d.answers as Record<string, any>) || {},
+            created_at: d.created_at,
+          })));
         }
         setLoading(false);
       });
   }, [user]);
 
-  const saveProfile = async (p: CarbonProfileData) => {
-    if (!user) return;
-    // Upsert: delete old then insert new
-    await supabase.from("carbon_profiles").delete().eq("user_id", user.id);
-    await supabase.from("carbon_profiles").insert({
-      user_id: user.id,
-      transport: p.transport,
-      diet: p.diet,
-      home: p.home,
-      shopping: p.shopping,
-      total: p.total,
-      answers: p.answers,
-    });
-    setProfile(p);
-  };
-
-  return { profile, loading, saveProfile };
+  return { profile, history, loading };
 }
 
 // ─── Leaderboard ───
