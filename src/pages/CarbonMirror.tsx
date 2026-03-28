@@ -271,7 +271,7 @@ function ResultsView({ answers, answerLabels }: { answers: Record<string, number
           { label: "Consumi", value: savings.byCategory.shopping, icon: "🛍️" },
         ];
         return (
-          <Card className={`border-${isPositive ? "emerald" : "red"}-500/20 bg-gradient-to-br from-${isPositive ? "emerald" : "red"}-500/5 to-transparent`}>
+          <Card className={isPositive ? "border-emerald-500/20 bg-gradient-to-br from-emerald-500/5 to-transparent" : "border-red-500/20 bg-gradient-to-br from-red-500/5 to-transparent"}>
             <CardContent className="p-6 space-y-4">
               <h3 className="font-bold text-foreground flex items-center gap-2">
                 <Euro className={`w-5 h-5 ${isPositive ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}`} />
