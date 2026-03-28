@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Trophy, Flame, Star, Medal, Lock, TrendingUp, Target, Users, Loader2, Euro } from "lucide-react";
+import { Trophy, Flame, Star, Medal, Lock, TrendingUp, Target, Users, Loader2, Euro, Gift } from "lucide-react";
 import { co2GramsToEuros, formatEuros } from "@/lib/savingsUtils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -74,6 +74,53 @@ function BadgeGrid() {
         );
       })}
     </div>
+  );
+}
+
+const WEEKLY_PRIZES = [
+  { rank: 1, emoji: "🥇", prize: "Buono EcoShop 25€", description: "Gift card per prodotti eco-sostenibili", color: "from-amber-400/20 to-amber-500/5 border-amber-400/30" },
+  { rank: 2, emoji: "🥈", prize: "Buono EcoShop 15€", description: "Gift card per prodotti eco-sostenibili", color: "from-slate-300/20 to-slate-400/5 border-slate-400/30" },
+  { rank: 3, emoji: "🥉", prize: "Buono EcoShop 10€", description: "Gift card per prodotti eco-sostenibili", color: "from-amber-600/20 to-amber-700/5 border-amber-600/30" },
+  { rank: 4, emoji: "4️⃣", prize: "Badge Esclusivo + 500 XP", description: "Badge unico e boost esperienza", color: "" },
+  { rank: 5, emoji: "5️⃣", prize: "Badge Esclusivo + 400 XP", description: "Badge unico e boost esperienza", color: "" },
+  { rank: 6, emoji: "6️⃣", prize: "300 XP Bonus", description: "Boost di esperienza extra", color: "" },
+  { rank: 7, emoji: "7️⃣", prize: "250 XP Bonus", description: "Boost di esperienza extra", color: "" },
+  { rank: 8, emoji: "8️⃣", prize: "200 XP Bonus", description: "Boost di esperienza extra", color: "" },
+  { rank: 9, emoji: "9️⃣", prize: "150 XP Bonus", description: "Boost di esperienza extra", color: "" },
+  { rank: 10, emoji: "🔟", prize: "100 XP Bonus", description: "Boost di esperienza extra", color: "" },
+];
+
+function WeeklyPrizes() {
+  return (
+    <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-lg flex items-center gap-2">
+          <Gift className="w-5 h-5 text-primary" />
+          Premi Settimanali
+        </CardTitle>
+        <p className="text-xs text-muted-foreground">I top 10 della classifica generale vincono premi ogni settimana!</p>
+      </CardHeader>
+      <CardContent className="space-y-2">
+        {WEEKLY_PRIZES.map((p, i) => (
+          <motion.div
+            key={p.rank}
+            initial={{ opacity: 0, x: -15 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: i * 0.04 }}
+            className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
+              p.rank <= 3 ? `bg-gradient-to-r ${p.color}` : "bg-card border-border"
+            }`}
+          >
+            <span className="text-xl w-8 text-center">{p.emoji}</span>
+            <div className="flex-1 min-w-0">
+              <p className={`text-sm font-semibold ${p.rank <= 3 ? "text-foreground" : "text-muted-foreground"}`}>{p.prize}</p>
+              <p className="text-[10px] text-muted-foreground">{p.description}</p>
+            </div>
+            <span className="text-xs font-bold text-muted-foreground shrink-0">#{p.rank}</span>
+          </motion.div>
+        ))}
+      </CardContent>
+    </Card>
   );
 }
 
@@ -245,17 +292,20 @@ export default function ImpactStreak() {
         {tab === "sfide" && <WeeklyChallenges />}
         {tab === "badges" && <BadgeGrid />}
         {tab === "classifica" && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Trophy className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-                Classifica — Chi salva di più
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Leaderboard />
-            </CardContent>
-          </Card>
+          <div className="space-y-6">
+            <WeeklyPrizes />
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Trophy className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                  Classifica — Chi salva di più
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Leaderboard />
+              </CardContent>
+            </Card>
+          </div>
         )}
       </motion.div>
     </div>
