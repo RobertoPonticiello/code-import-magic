@@ -51,6 +51,7 @@ function AppRoutes() {
       <Route path="/air-alert" element={<ProtectedRoute><AppLayout><AirAlert /></AppLayout></ProtectedRoute>} />
       <Route path="/impact-streak" element={<ProtectedRoute><AppLayout><ImpactStreak /></AppLayout></ProtectedRoute>} />
       <Route path="/quartiere-vivo" element={<ProtectedRoute><AppLayout><QuartiereVivo /></AppLayout></ProtectedRoute>} />
+      <Route path="/profile" element={<ProtectedRoute><AppLayout><Profile /></AppLayout></ProtectedRoute>} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
