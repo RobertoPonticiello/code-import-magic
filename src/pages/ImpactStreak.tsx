@@ -40,7 +40,7 @@ function BadgeGrid() {
     if (id === "b2") return stats.total_actions >= 10;
     if (id === "b3") return stats.streak_days >= 7;
     if (id === "b4") return stats.total_co2_grams >= 5000;
-    if (id === "b5") return stats.total_reports >= 3;
+    
     return false;
   };
 
