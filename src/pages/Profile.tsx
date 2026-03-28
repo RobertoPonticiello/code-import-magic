@@ -293,6 +293,60 @@ export default function Profile() {
         </Card>
       </motion.div>
 
+      {/* Carbon Mirror History */}
+      {carbonHistory.length > 1 && (
+        <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={8}>
+          <Card>
+            <CardContent className="p-5 space-y-4">
+              <div className="flex items-center gap-2">
+                <History className="w-5 h-5 text-primary" />
+                <h3 className="font-bold text-foreground">Evoluzione Carbon Mirror</h3>
+                <span className="text-xs text-muted-foreground ml-auto">{carbonHistory.length} rilevazioni</span>
+              </div>
+              <div className="h-48">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={[...carbonHistory].reverse().map((h) => ({
+                    data: new Date(h.created_at).toLocaleDateString("it-IT", { day: "2-digit", month: "short" }),
+                    totale: Number(h.total.toFixed(1)),
+                    trasporti: Number(h.transport.toFixed(1)),
+                    alimentazione: Number(h.diet.toFixed(1)),
+                    casa: Number(h.home.toFixed(1)),
+                    consumi: Number(h.shopping.toFixed(1)),
+                  }))}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                    <XAxis dataKey="data" tick={{ fontSize: 10 }} className="fill-muted-foreground" />
+                    <YAxis tick={{ fontSize: 10 }} className="fill-muted-foreground" unit=" kg" />
+                    <Tooltip
+                      contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "8px", fontSize: "12px" }}
+                      labelStyle={{ color: "hsl(var(--foreground))", fontWeight: "bold" }}
+                    />
+                    <Line type="monotone" dataKey="totale" stroke="hsl(var(--primary))" strokeWidth={2.5} dot={{ r: 4 }} />
+                    <Line type="monotone" dataKey="trasporti" stroke="#3b82f6" strokeWidth={1.5} dot={false} strokeDasharray="4 4" />
+                    <Line type="monotone" dataKey="alimentazione" stroke="#f59e0b" strokeWidth={1.5} dot={false} strokeDasharray="4 4" />
+                    <Line type="monotone" dataKey="casa" stroke="#10b981" strokeWidth={1.5} dot={false} strokeDasharray="4 4" />
+                    <Line type="monotone" dataKey="consumi" stroke="#a855f7" strokeWidth={1.5} dot={false} strokeDasharray="4 4" />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="flex flex-wrap gap-4 text-[11px] text-muted-foreground">
+                {[
+                  { label: "Totale", color: "bg-primary" },
+                  { label: "Trasporti", color: "bg-blue-500" },
+                  { label: "Alimentazione", color: "bg-amber-500" },
+                  { label: "Casa", color: "bg-emerald-500" },
+                  { label: "Consumi", color: "bg-purple-500" },
+                ].map((l) => (
+                  <div key={l.label} className="flex items-center gap-1.5">
+                    <div className={`w-3 h-3 rounded-sm ${l.color}`} />
+                    {l.label}
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
+
       {/* Eco-tips */}
       <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={8}>
         <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
