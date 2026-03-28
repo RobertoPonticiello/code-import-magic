@@ -3,8 +3,9 @@ import { motion } from "framer-motion";
 import {
   Leaf, MapPin, Trophy, Flame, TrendingUp, Zap,
   Droplets, ShoppingBag, Car, Utensils, Home, Award,
-  BarChart3, Target, TreePine, Recycle, Loader2, History
+  BarChart3, Target, TreePine, Recycle, Loader2, History, Euro
 } from "lucide-react";
+import { co2GramsToEuros, formatEuros, annualSavingsFromProfile, co2ToEurosByCategory } from "@/lib/savingsUtils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/contexts/AuthContext";
@@ -55,6 +56,9 @@ export default function Profile() {
   const xp = stats?.xp || 0;
   const levelInfo = getLevel(xp);
 
+  const totalEurosSaved = co2GramsToEuros(stats?.total_co2_grams || 0);
+  const annualSavings = carbonProfile ? annualSavingsFromProfile(carbonProfile) : null;
+
   const derivedStats = {
     totalActions: stats?.total_actions || 0,
     totalCo2Kg,
@@ -62,6 +66,7 @@ export default function Profile() {
     reports: stats?.total_reports || 0,
     treesEquiv: (totalCo2Kg / 21).toFixed(1),
     kmSaved: (totalCo2Kg * 5.5).toFixed(0),
+    eurosSaved: totalEurosSaved,
   };
 
   // Use real carbon profile or defaults
@@ -132,8 +137,8 @@ export default function Profile() {
                   {[
                     { icon: Flame, value: `${derivedStats.streakDays}g`, label: "Streak" },
                     { icon: Leaf, value: `${derivedStats.totalCo2Kg.toFixed(1)}kg`, label: "CO₂ salvati" },
+                    { icon: Euro, value: formatEuros(derivedStats.eurosSaved), label: "Risparmiati" },
                     { icon: Target, value: derivedStats.totalActions, label: "Azioni" },
-                    { icon: MapPin, value: derivedStats.reports, label: "Carbon Mirror" },
                   ].map((s) => (
                     <div key={s.label} className="flex items-center gap-1.5">
                       <s.icon className="w-4 h-4 text-primary" />
@@ -152,8 +157,8 @@ export default function Profile() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { title: "Alberi equivalenti", value: derivedStats.treesEquiv, unit: "🌳", desc: "CO₂ assorbita/anno" },
-          { title: "Km non percorsi", value: derivedStats.kmSaved, unit: "🚗", desc: "in auto evitati" },
-          { title: "Impronta annua", value: cp.total > 0 ? `${cp.total.toFixed(1)}t` : "—", unit: "📊", desc: cp.total > 0 ? `Media IT: ${nationalAvg}t` : "Completa il Carbon Mirror" },
+          { title: "€ Risparmiati", value: formatEuros(derivedStats.eurosSaved), unit: "💰", desc: "dalle tue azioni eco" },
+          { title: "Risparmio annuo stimato", value: annualSavings ? formatEuros(annualSavings.totalAnnual) : "—", unit: "📈", desc: annualSavings ? "rispetto alla media italiana" : "Completa il Carbon Mirror" },
           { title: "Risparmio vs media", value: cp.total > 0 ? `${((1 - cp.total / nationalAvg) * 100).toFixed(0)}%` : "—", unit: "📉", desc: cp.total > 0 ? "sotto la media nazionale" : "Dati non disponibili" },
         ].map((stat, i) => (
           <motion.div key={stat.title} initial="hidden" animate="visible" variants={fadeUp} custom={i + 1}>

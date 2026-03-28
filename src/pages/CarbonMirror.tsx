@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, ArrowRight, Car, UtensilsCrossed, Home, ShoppingBag, BarChart3, Leaf, Sparkles, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Car, UtensilsCrossed, Home, ShoppingBag, BarChart3, Leaf, Sparkles, Loader2, Euro } from "lucide-react";
+import { annualSavingsFromProfile, formatEuros, co2ToEurosByCategory } from "@/lib/savingsUtils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -258,6 +259,51 @@ function ResultsView({ answers, answerLabels }: { answers: Record<string, number
           <p className="text-[10px] text-muted-foreground">Calcoli basati su fattori di emissione ISPRA 2024 e EEA 2023</p>
         </CardContent>
       </Card>
+
+      {/* Economic Savings */}
+      {(() => {
+        const savings = annualSavingsFromProfile({ transport, diet, home, shopping, total });
+        const hasSavings = savings.totalAnnual > 0;
+        return (
+          <Card className="border-emerald-500/20 bg-gradient-to-br from-emerald-500/5 to-emerald-500/0">
+            <CardContent className="p-6 space-y-4">
+              <h3 className="font-bold text-foreground flex items-center gap-2">
+                <Euro className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                Risparmio Economico Stimato
+              </h3>
+              {hasSavings ? (
+                <>
+                  <div className="text-center py-2">
+                    <p className="text-4xl font-bold text-emerald-600 dark:text-emerald-400">{formatEuros(savings.totalAnnual)}</p>
+                    <p className="text-sm text-muted-foreground mt-1">di risparmio annuo rispetto alla media italiana</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { label: "Trasporti", value: savings.byCategory.transport, icon: "🚗" },
+                      { label: "Alimentazione", value: savings.byCategory.diet, icon: "🍽️" },
+                      { label: "Casa", value: savings.byCategory.home, icon: "🏠" },
+                      { label: "Consumi", value: savings.byCategory.shopping, icon: "🛍️" },
+                    ].map((cat) => (
+                      <div key={cat.label} className="bg-card rounded-lg p-3 text-center border border-border">
+                        <span className="text-lg">{cat.icon}</span>
+                        <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400 mt-1">{formatEuros(cat.value)}</p>
+                        <p className="text-[10px] text-muted-foreground">{cat.label}/anno</p>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-[10px] text-muted-foreground">
+                    Stime basate su costi medi italiani: carburante (MASE 2024), bollette (ARERA), alimentazione (ISTAT)
+                  </p>
+                </>
+              ) : (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  La tua impronta è sopra la media — riduci le emissioni per iniziare a risparmiare! 💪
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        );
+      })()}
 
       {/* Comparison */}
       <Card>
