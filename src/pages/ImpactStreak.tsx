@@ -244,8 +244,8 @@ export default function ImpactStreak() {
   return (
     <div className="p-6 lg:p-8 max-w-4xl mx-auto space-y-8">
       <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={0}>
-        <h1 className="text-3xl font-bold text-foreground tracking-tight">🏆 Impact Streak</h1>
-        <p className="text-muted-foreground mt-1">Sfide, badge e classifiche per salvare il pianeta</p>
+        <h1 className="text-3xl font-bold text-foreground tracking-tight">🏆 Classifica</h1>
+        <p className="text-muted-foreground mt-1">Scala la classifica e vinci premi settimanali</p>
       </motion.div>
 
       {/* Stats */}
@@ -282,33 +282,9 @@ export default function ImpactStreak() {
         </Card>
       </motion.div>
 
-      {/* Tabs */}
+      {/* Leaderboard */}
       <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={6}>
-        <div className="flex gap-1 bg-muted p-1 rounded-xl">
-          {[
-            { id: "sfide" as const, label: "Sfide Settimanali", icon: Target },
-            { id: "badges" as const, label: "Badge", icon: Trophy },
-            { id: "classifica" as const, label: "Classifica", icon: Users },
-          ].map((t) => (
-            <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-sm font-medium transition-all ${
-                tab === t.id ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <t.icon className="w-4 h-4" />
-              <span className="hidden sm:inline">{t.label}</span>
-            </button>
-          ))}
-        </div>
-      </motion.div>
-
-      {/* Content */}
-      <motion.div key={tab} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2 }}>
-        {tab === "sfide" && <WeeklyChallenges />}
-        {tab === "badges" && <BadgeGrid />}
-        {tab === "classifica" && <LeaderboardWithPrizes />}
+        <LeaderboardWithPrizes />
       </motion.div>
     </div>
   );
