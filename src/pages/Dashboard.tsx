@@ -103,6 +103,7 @@ export function Dashboard() {
           currentActions: actions,
           feedback,
           userCity: location.city || "Roma",
+          completedActionTitles: completedActions.map((a) => a.action_title),
         }),
       });
 
