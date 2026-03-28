@@ -1,15 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, ThumbsUp, Clock, AlertTriangle, CheckCircle, Filter, X, Send, MapPin, Loader2 } from "lucide-react";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { useUserLocation } from "@/hooks/useUserLocation";
 import { getCommunityReports, reportTypeConfig, severityConfig, type CommunityReport } from "@/lib/mockData";
+import { createDivIcon } from "@/components/LeafletMap";
+
+const LeafletMap = lazy(() => import("@/components/LeafletMap"));
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
