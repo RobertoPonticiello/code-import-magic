@@ -9,6 +9,7 @@ import Dashboard from "./pages/Dashboard";
 import CarbonMirror from "./pages/CarbonMirror";
 import AirAlert from "./pages/AirAlert";
 import ImpactStreak from "./pages/ImpactStreak";
+import ActionHistory from "./pages/ActionHistory";
 
 import Profile from "./pages/Profile";
 import Auth from "./pages/Auth";
@@ -50,6 +51,7 @@ function AppRoutes() {
       <Route path="/carbon-mirror" element={<ProtectedRoute><AppLayout><CarbonMirror /></AppLayout></ProtectedRoute>} />
       <Route path="/air-alert" element={<ProtectedRoute><AppLayout><AirAlert /></AppLayout></ProtectedRoute>} />
       <Route path="/impact-streak" element={<ProtectedRoute><AppLayout><ImpactStreak /></AppLayout></ProtectedRoute>} />
+      <Route path="/action-history" element={<ProtectedRoute><AppLayout><ActionHistory /></AppLayout></ProtectedRoute>} />
       
       <Route path="/profile" element={<ProtectedRoute><AppLayout><Profile /></AppLayout></ProtectedRoute>} />
       <Route path="*" element={<NotFound />} />

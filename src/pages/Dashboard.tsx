@@ -353,7 +353,7 @@ export function Dashboard() {
                 { label: "La tua impronta di carbonio", path: "/carbon-mirror", icon: "🪞" },
                 { label: "Allerte aria in tempo reale", path: "/air-alert", icon: "🌡️" },
                 { label: "Sfide e classifiche", path: "/impact-streak", icon: "🏆" },
-                
+                { label: "Diario delle azioni", path: "/action-history", icon: "📔" },
                 { label: "Il tuo profilo eco", path: "/profile", icon: "🌿" },
               ].map((link) => (
                 <Link
@@ -376,6 +376,12 @@ export function Dashboard() {
           </div>
         </motion.div>
       </div>
+      <ActionCompleteDialog
+        action={dialogAction}
+        open={!!dialogAction}
+        onClose={() => setDialogAction(null)}
+        onConfirm={handleDialogConfirm}
+      />
     </div>
   );
 }
