@@ -1,10 +1,9 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Trophy, Flame, Star, Medal, Lock, TrendingUp, Target, Users, Loader2, Euro, Gift, Clock } from "lucide-react";
+import { Trophy, Flame, Star, TrendingUp, Loader2, Euro, Gift, Clock } from "lucide-react";
 import { co2GramsToEuros, formatEuros } from "@/lib/savingsUtils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { getBadges, getWeeklyChallenges } from "@/lib/mockData";
 import { useUserStats, useLeaderboard } from "@/hooks/useUserData";
 
 const fadeUp = {
@@ -28,53 +27,6 @@ function getLevel(xp: number) {
     }
   }
   return { level: 1, name: "Germoglio", progress: 0, nextXp: 500, xp: 0 };
-}
-
-function BadgeGrid() {
-  const badges = getBadges();
-  const { stats } = useUserStats();
-
-  // Dynamic unlock
-  const isUnlocked = (id: string) => {
-    if (!stats) return false;
-    if (id === "b1") return stats.total_actions >= 1;
-    if (id === "b2") return stats.total_actions >= 10;
-    if (id === "b3") return stats.streak_days >= 7;
-    if (id === "b4") return stats.total_co2_grams >= 5000;
-    
-    return false;
-  };
-
-  return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-      {badges.map((badge, i) => {
-        const unlocked = isUnlocked(badge.id);
-        return (
-          <motion.div
-            key={badge.id}
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: i * 0.05 }}
-            className={`relative p-4 rounded-xl border text-center transition-all ${
-              unlocked
-                ? "bg-card border-primary/20 shadow-sm hover:shadow-md"
-                : "bg-muted/30 border-border opacity-60"
-            }`}
-          >
-            {!unlocked && <Lock className="w-3 h-3 text-muted-foreground absolute top-2 right-2" />}
-            <div className="text-3xl mb-2">{badge.icon}</div>
-            <p className="text-xs font-bold text-foreground">{badge.name}</p>
-            <p className="text-[10px] text-muted-foreground mt-0.5">{badge.description}</p>
-            {unlocked ? (
-              <p className="text-[9px] text-primary font-medium mt-1">✓ Sbloccato</p>
-            ) : (
-              <p className="text-[9px] text-muted-foreground mt-1">{badge.requirement}</p>
-            )}
-          </motion.div>
-        );
-      })}
-    </div>
-  );
 }
 
 const WEEKLY_PRIZES = [
@@ -187,47 +139,7 @@ function LeaderboardWithPrizes() {
   );
 }
 
-function WeeklyChallenges() {
-  const challenges = getWeeklyChallenges();
-  return (
-    <div className="space-y-4">
-      {challenges.map((challenge, i) => {
-        const pct = (challenge.progress / challenge.total) * 100;
-        return (
-          <motion.div key={challenge.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}>
-            <Card className="overflow-hidden">
-              <CardContent className="p-4 space-y-3">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="text-sm font-bold text-foreground">{challenge.title}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">{challenge.description}</p>
-                  </div>
-                  <span className="text-xs bg-accent text-accent-foreground px-2 py-1 rounded-full font-medium shrink-0">
-                    {challenge.reward}
-                  </span>
-                </div>
-                <div>
-                  <div className="flex justify-between text-xs mb-1">
-                    <span className="text-muted-foreground">Progresso</span>
-                    <span className="font-bold text-foreground">{challenge.progress}/{challenge.total}</span>
-                  </div>
-                  <Progress value={pct} className="h-2.5" />
-                </div>
-                <div className="flex items-center gap-3 text-[10px] font-medium">
-                  <span className="text-primary">Potenziale: {(challenge.co2_potential / 1000).toFixed(1)}kg CO₂</span>
-                  <span className="text-emerald-600 dark:text-emerald-400">~{formatEuros(co2GramsToEuros(challenge.co2_potential))}</span>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        );
-      })}
-    </div>
-  );
-}
-
 export default function ImpactStreak() {
-  const [tab, setTab] = useState<"badges" | "classifica" | "sfide">("sfide");
   const { stats, loading } = useUserStats();
 
   const xp = stats?.xp || 0;
@@ -244,8 +156,8 @@ export default function ImpactStreak() {
   return (
     <div className="p-6 lg:p-8 max-w-4xl mx-auto space-y-8">
       <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={0}>
-        <h1 className="text-3xl font-bold text-foreground tracking-tight">🏆 Impact Streak</h1>
-        <p className="text-muted-foreground mt-1">Sfide, badge e classifiche per salvare il pianeta</p>
+        <h1 className="text-3xl font-bold text-foreground tracking-tight">🏆 Classifica</h1>
+        <p className="text-muted-foreground mt-1">Scala la classifica e vinci premi settimanali</p>
       </motion.div>
 
       {/* Stats */}
@@ -282,33 +194,9 @@ export default function ImpactStreak() {
         </Card>
       </motion.div>
 
-      {/* Tabs */}
+      {/* Leaderboard */}
       <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={6}>
-        <div className="flex gap-1 bg-muted p-1 rounded-xl">
-          {[
-            { id: "sfide" as const, label: "Sfide Settimanali", icon: Target },
-            { id: "badges" as const, label: "Badge", icon: Trophy },
-            { id: "classifica" as const, label: "Classifica", icon: Users },
-          ].map((t) => (
-            <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-sm font-medium transition-all ${
-                tab === t.id ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <t.icon className="w-4 h-4" />
-              <span className="hidden sm:inline">{t.label}</span>
-            </button>
-          ))}
-        </div>
-      </motion.div>
-
-      {/* Content */}
-      <motion.div key={tab} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2 }}>
-        {tab === "sfide" && <WeeklyChallenges />}
-        {tab === "badges" && <BadgeGrid />}
-        {tab === "classifica" && <LeaderboardWithPrizes />}
+        <LeaderboardWithPrizes />
       </motion.div>
     </div>
   );
