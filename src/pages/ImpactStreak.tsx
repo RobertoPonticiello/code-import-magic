@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Trophy, Flame, Star, Medal, Lock, TrendingUp, Target, Users, Loader2, Euro } from "lucide-react";
+import { Trophy, Flame, Star, Medal, Lock, TrendingUp, Target, Users, Loader2, Euro, Gift } from "lucide-react";
 import { co2GramsToEuros, formatEuros } from "@/lib/savingsUtils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
