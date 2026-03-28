@@ -267,7 +267,7 @@ function ResultsView({ answers, answerLabels }: { answers: Record<string, number
               <span className="text-sm font-medium text-foreground w-28 shrink-0">{item.label}</span>
               <div className="flex-1 h-6 bg-muted rounded-full overflow-hidden relative">
                 <motion.div initial={{ width: 0 }} animate={{ width: `${(item.value / 12) * 100}%` }} transition={{ duration: 0.8 }} className={`h-full rounded-full ${item.color} flex items-center justify-end pr-2`}>
-                  <span className="text-[10px] font-bold text-white">{item.value.toFixed(1)} kg</span>
+                  <span className="text-[10px] font-bold text-primary-foreground drop-shadow-sm">{item.value.toFixed(1)} kg</span>
                 </motion.div>
               </div>
             </div>

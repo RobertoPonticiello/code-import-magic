@@ -19,19 +19,19 @@ const fadeUp = {
 
 const levelConfig: Record<string, { bg: string; text: string; border: string; advice: string[] }> = {
   Ottima: {
-    bg: "bg-emerald-500/10", text: "text-emerald-600", border: "border-emerald-500/20",
+    bg: "bg-emerald-500/10", text: "text-emerald-600 dark:text-emerald-400", border: "border-emerald-500/20",
     advice: ["🏃 Giornata perfetta per attività all'aperto", "🪟 Apri le finestre e arieggia bene la casa", "🌳 Approfitta per una passeggiata al parco"],
   },
   Buona: {
-    bg: "bg-amber-500/10", text: "text-amber-600", border: "border-amber-500/20",
+    bg: "bg-amber-500/10", text: "text-amber-600 dark:text-amber-400", border: "border-amber-500/20",
     advice: ["✅ Attività all'aperto consentite", "👶 Chi è sensibile limiti sforzi intensi", "🏠 Arieggia nelle ore meno trafficate"],
   },
   Moderata: {
-    bg: "bg-orange-500/10", text: "text-orange-600", border: "border-orange-500/20",
+    bg: "bg-orange-500/10", text: "text-orange-600 dark:text-orange-400", border: "border-orange-500/20",
     advice: ["⚠️ Evita attività sportive all'aperto prolungate", "😷 Chi soffre d'asma usi la mascherina FFP2", "🪟 Tieni chiuse le finestre nelle ore di punta", "🚗 Evita di usare l'auto per ridurre le emissioni"],
   },
   Scarsa: {
-    bg: "bg-red-500/10", text: "text-red-600", border: "border-red-500/20",
+    bg: "bg-red-500/10", text: "text-red-600 dark:text-red-400", border: "border-red-500/20",
     advice: ["🚨 Resta in casa il più possibile", "😷 Mascherina FFP2 obbligatoria all'aperto", "🏋️ Niente sport all'aperto", "👴 Anziani e bambini: massima cautela"],
   },
 };

@@ -98,9 +98,9 @@ function Leaderboard() {
           }`}
         >
           <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-            user.rank === 1 ? "bg-amber-400 text-amber-900" :
-            user.rank === 2 ? "bg-gray-300 text-gray-700" :
-            user.rank === 3 ? "bg-amber-600 text-amber-100" :
+            user.rank === 1 ? "bg-amber-400 text-amber-950" :
+            user.rank === 2 ? "bg-muted-foreground/30 text-foreground" :
+            user.rank === 3 ? "bg-amber-600 text-amber-50" :
             "bg-muted text-muted-foreground"
           }`}>
             {user.rank <= 3 ? ["🥇", "🥈", "🥉"][user.rank - 1] : user.rank}
@@ -168,10 +168,10 @@ export default function ImpactStreak() {
   const levelInfo = getLevel(xp);
 
   const statCards = [
-    { label: "Streak Corrente", value: `${stats?.streak_days || 0} giorni`, icon: Flame, color: "text-orange-500" },
-    { label: "Azioni Totali", value: `${stats?.total_actions || 0}`, icon: Star, color: "text-amber-500" },
+    { label: "Streak Corrente", value: `${stats?.streak_days || 0} giorni`, icon: Flame, color: "text-orange-600 dark:text-orange-400" },
+    { label: "Azioni Totali", value: `${stats?.total_actions || 0}`, icon: Star, color: "text-amber-600 dark:text-amber-400" },
     { label: "CO₂ Risparmiata", value: `${((stats?.total_co2_grams || 0) / 1000).toFixed(1)} kg`, icon: TrendingUp, color: "text-primary" },
-    { label: "XP Totali", value: `${xp}`, icon: Medal, color: "text-blue-500" },
+    { label: "XP Totali", value: `${xp}`, icon: Medal, color: "text-blue-600 dark:text-blue-400" },
   ];
 
   return (
@@ -245,7 +245,7 @@ export default function ImpactStreak() {
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
-                <Trophy className="w-5 h-5 text-amber-500" />
+                <Trophy className="w-5 h-5 text-amber-600 dark:text-amber-400" />
                 Classifica — Chi salva di più
               </CardTitle>
             </CardHeader>

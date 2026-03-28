@@ -20,9 +20,9 @@ const fadeUp = {
 };
 
 const statusConfig = {
-  aperta: { label: "Aperta", icon: AlertTriangle, color: "text-amber-500 bg-amber-500/10" },
-  in_corso: { label: "In corso", icon: Clock, color: "text-blue-500 bg-blue-500/10" },
-  risolta: { label: "Risolta", icon: CheckCircle, color: "text-emerald-500 bg-emerald-500/10" },
+  aperta: { label: "Aperta", icon: AlertTriangle, color: "text-amber-600 dark:text-amber-400 bg-amber-500/10" },
+  in_corso: { label: "In corso", icon: Clock, color: "text-blue-600 dark:text-blue-400 bg-blue-500/10" },
+  risolta: { label: "Risolta", icon: CheckCircle, color: "text-emerald-600 dark:text-emerald-400 bg-emerald-500/10" },
 };
 
 function createIcon(emoji: string) {
@@ -191,9 +191,9 @@ export default function QuartiereVivo() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
           { label: "Totali", value: stats.total, color: "text-foreground" },
-          { label: "Aperte", value: stats.open, color: "text-amber-500" },
-          { label: "In corso", value: stats.inProgress, color: "text-blue-500" },
-          { label: "Risolte", value: stats.resolved, color: "text-emerald-500" },
+          { label: "Aperte", value: stats.open, color: "text-amber-600 dark:text-amber-400" },
+          { label: "In corso", value: stats.inProgress, color: "text-blue-600 dark:text-blue-400" },
+          { label: "Risolte", value: stats.resolved, color: "text-emerald-600 dark:text-emerald-400" },
         ].map((s, i) => (
           <motion.div key={s.label} initial="hidden" animate="visible" variants={fadeUp} custom={i + 1}>
             <Card>
