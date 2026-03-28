@@ -360,7 +360,7 @@ export default function Profile() {
                 <ul className="text-xs text-muted-foreground mt-2 space-y-1">
                   <li>✅ Completa azioni quotidiane → <strong className="text-foreground">+50 XP</strong> ciascuna</li>
                   <li>🔥 Mantieni la streak → <strong className="text-foreground">+30 XP</strong> al giorno</li>
-                  <li>📍 Fai segnalazioni su Quartiere Vivo → <strong className="text-foreground">+100 XP</strong></li>
+                  
                   <li>🪞 Aggiorna il tuo Carbon Mirror periodicamente</li>
                 </ul>
               </div>

@@ -132,59 +132,6 @@ export function useUserStats() {
   return { stats, loading, refetch: fetchStats };
 }
 
-// ─── Community Reports ───
-
-export interface Report {
-  id: string;
-  user_id: string;
-  type: string;
-  title: string;
-  description: string;
-  lat: number;
-  lng: number;
-  address: string;
-  severity: string;
-  status: string;
-  votes: number;
-  created_at: string;
-}
-
-export function useCommunityReports() {
-  const { user } = useAuth();
-  const [reports, setReports] = useState<Report[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const fetchReports = useCallback(async () => {
-    const { data } = await supabase
-      .from("community_reports")
-      .select("*")
-      .order("created_at", { ascending: false });
-    setReports((data as Report[]) || []);
-    setLoading(false);
-  }, []);
-
-  useEffect(() => { fetchReports(); }, [fetchReports]);
-
-  const createReport = async (report: Omit<Report, "id" | "user_id" | "votes" | "created_at" | "status">) => {
-    if (!user) return null;
-    const { data, error } = await supabase.from("community_reports").insert({
-      user_id: user.id,
-      ...report,
-    }).select().single();
-    if (!error && data) {
-      setReports((p) => [data as Report, ...p]);
-    }
-    return data;
-  };
-
-  const voteReport = async (reportId: string) => {
-    if (!user) return;
-    await supabase.rpc("vote_report", { p_report_id: reportId });
-    await fetchReports();
-  };
-
-  return { reports, loading, createReport, voteReport, refetch: fetchReports };
-}
 
 // ─── Carbon Profile ───
 

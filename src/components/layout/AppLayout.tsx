@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import {
-  LayoutDashboard, Leaf, Wind, Trophy, MapPin, Footprints, User,
+  LayoutDashboard, Leaf, Wind, Trophy, Footprints, User,
   Menu, X, ChevronRight, LogOut, Sun, Moon
 } from "lucide-react";
 import useTheme from "@/hooks/use-theme";
@@ -13,7 +13,7 @@ const navItems = [
   { path: "/carbon-mirror", label: "Carbon Mirror", icon: Footprints, desc: "La tua impronta" },
   { path: "/air-alert", label: "AirAlert", icon: Wind, desc: "Qualità aria" },
   { path: "/impact-streak", label: "Impact Streak", icon: Trophy, desc: "Sfide & badge" },
-  { path: "/quartiere-vivo", label: "Quartiere Vivo", icon: MapPin, desc: "Segnalazioni" },
+  
   { path: "/profile", label: "Profilo Eco", icon: User, desc: "Il tuo profilo" },
 ];
 

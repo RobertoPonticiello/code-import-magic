@@ -43,20 +43,6 @@ export interface CarbonProfile {
   europeanAvg: number;
 }
 
-export interface CommunityReport {
-  id: string;
-  type: "discarica" | "spreco_idrico" | "aria" | "rumore" | "verde";
-  title: string;
-  description: string;
-  lat: number;
-  lng: number;
-  severity: "bassa" | "media" | "alta" | "critica";
-  status: "aperta" | "in_corso" | "risolta";
-  votes: number;
-  createdAt: string;
-  address: string;
-}
-
 export interface AirQualityForecast {
   hour: string;
   pm25: number;
@@ -174,21 +160,10 @@ export function getBadges(): Badge[] {
     { id: "b2", name: "Eco Warrior", description: "Completa 10 azioni", icon: "⚔️", unlocked: true, unlockedAt: "2026-03-27", requirement: "10 azioni" },
     { id: "b3", name: "Streak Master", description: "Mantieni una streak di 7 giorni", icon: "🔥", unlocked: true, unlockedAt: "2026-03-28", requirement: "7 giorni streak" },
     { id: "b4", name: "Carbon Saver", description: "Risparmia 5kg di CO₂", icon: "💎", unlocked: false, requirement: "5kg CO₂" },
-    { id: "b5", name: "Quartiere Vivo", description: "Fai 3 segnalazioni verificate", icon: "🏘️", unlocked: false, requirement: "3 segnalazioni" },
+    
     { id: "b6", name: "Influencer Verde", description: "Ispira 5 amici a unirsi", icon: "🌍", unlocked: false, requirement: "5 inviti" },
     { id: "b7", name: "Zero Waste Hero", description: "7 giorni senza rifiuti indifferenziati", icon: "♻️", unlocked: false, requirement: "7 giorni zero waste" },
     { id: "b8", name: "Leggenda Eco", description: "Completa 100 azioni", icon: "👑", unlocked: false, requirement: "100 azioni" },
-  ];
-}
-
-export function getCommunityReports(): CommunityReport[] {
-  return [
-    { id: "r1", type: "discarica", title: "Micro-discarica Via Prenestina", description: "Accumulo rifiuti ingombranti abbandonati sul marciapiede", lat: 41.8905, lng: 12.5378, severity: "alta", status: "aperta", votes: 23, createdAt: "2026-03-27", address: "Via Prenestina 234" },
-    { id: "r2", type: "spreco_idrico", title: "Perdita fontanella Trastevere", description: "Fontanella pubblica con getto continuo non regolato, spreco stimato 200L/h", lat: 41.8898, lng: 12.4694, severity: "media", status: "in_corso", votes: 15, createdAt: "2026-03-26", address: "Piazza San Cosimato" },
-    { id: "r3", type: "verde", title: "Albero pericolante Prati", description: "Grande pino con ramo spezzato che pende sulla strada, rischio caduta", lat: 41.9095, lng: 12.4608, severity: "critica", status: "aperta", votes: 41, createdAt: "2026-03-25", address: "Via Cola di Rienzo 180" },
-    { id: "r4", type: "aria", title: "Emissioni cantiere Tiburtina", description: "Polveri sottili eccessive dal cantiere edile, nessuna rete di contenimento", lat: 41.9009, lng: 12.5282, severity: "alta", status: "in_corso", votes: 18, createdAt: "2026-03-24", address: "Via Tiburtina 520" },
-    { id: "r5", type: "rumore", title: "Locale notturno Testaccio", description: "Musica oltre i limiti fino alle 4 di notte, residenti non riescono a dormire", lat: 41.8761, lng: 12.4759, severity: "media", status: "aperta", votes: 31, createdAt: "2026-03-23", address: "Via di Monte Testaccio 36" },
-    { id: "r6", type: "discarica", title: "Rifiuti edili Via Appia", description: "Materiale di demolizione scaricato illegalmente in area verde protetta", lat: 41.8582, lng: 12.5203, severity: "critica", status: "aperta", votes: 56, createdAt: "2026-03-22", address: "Via Appia Antica 87" },
   ];
 }
 
@@ -246,17 +221,3 @@ export function getCarbonProfile(): CarbonProfile {
   };
 }
 
-export const reportTypeConfig = {
-  discarica: { label: "Discarica abusiva", icon: "🗑️", color: "hsl(0 84% 60%)" },
-  spreco_idrico: { label: "Spreco idrico", icon: "💧", color: "hsl(199 89% 48%)" },
-  aria: { label: "Qualità aria", icon: "💨", color: "hsl(215 15% 55%)" },
-  rumore: { label: "Inquinamento acustico", icon: "🔊", color: "hsl(45 93% 47%)" },
-  verde: { label: "Verde urbano", icon: "🌳", color: "hsl(142 69% 29%)" },
-};
-
-export const severityConfig = {
-  bassa: { label: "Bassa", color: "hsl(142 69% 29%)" },
-  media: { label: "Media", color: "hsl(45 93% 47%)" },
-  alta: { label: "Alta", color: "hsl(25 95% 53%)" },
-  critica: { label: "Critica", color: "hsl(0 84% 60%)" },
-};

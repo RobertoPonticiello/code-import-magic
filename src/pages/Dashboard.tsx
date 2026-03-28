@@ -336,7 +336,7 @@ export function Dashboard() {
                 { label: "La tua impronta di carbonio", path: "/carbon-mirror", icon: "🪞" },
                 { label: "Allerte aria in tempo reale", path: "/air-alert", icon: "🌡️" },
                 { label: "Sfide e classifiche", path: "/impact-streak", icon: "🏆" },
-                { label: "Segnala un problema", path: "/quartiere-vivo", icon: "📍" },
+                
                 { label: "Il tuo profilo eco", path: "/profile", icon: "🌿" },
               ].map((link) => (
                 <Link
