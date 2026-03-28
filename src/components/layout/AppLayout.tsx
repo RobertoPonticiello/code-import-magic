@@ -20,6 +20,7 @@ const navItems = [
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [theme, toggleTheme] = useTheme();
   const { user, signOut } = useAuth();
 
   return (
