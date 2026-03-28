@@ -149,13 +149,23 @@ export default function Profile() {
                     { icon: Leaf, value: `${derivedStats.totalCo2Kg.toFixed(1)}kg`, label: "CO₂ salvati" },
                     { icon: Euro, value: formatEuros(derivedStats.eurosSaved), label: "Risparmiati" },
                     { icon: Target, value: derivedStats.totalActions, label: "Azioni" },
+                    ...(userCrowns > 0 ? [{ icon: Crown, value: userCrowns, label: "Corone" }] : []),
                   ].map((s) => (
                     <div key={s.label} className="flex items-center gap-1.5">
                       <s.icon className="w-4 h-4 text-primary" />
-                      <span className="text-sm font-bold text-foreground">{s.value}</span>
+                      <span className="text-sm font-bold text-foreground">{String(s.value)}</span>
                       <span className="text-xs text-muted-foreground">{s.label}</span>
                     </div>
                   ))}
+                  {(userBalance.totalWon > 0 || userBalance.totalPaid > 0) && (
+                    <div className="flex items-center gap-1.5">
+                      <Coins className="w-4 h-4 text-amber-500" />
+                      <span className={`text-sm font-bold ${userBalance.net >= 0 ? "text-emerald-500" : "text-destructive"}`}>
+                        {userBalance.net >= 0 ? "+" : ""}€{userBalance.net.toFixed(2)}
+                      </span>
+                      <span className="text-xs text-muted-foreground">Saldo jackpot</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
