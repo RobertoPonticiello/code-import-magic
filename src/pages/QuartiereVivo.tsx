@@ -210,14 +210,12 @@ export default function QuartiereVivo() {
                     id: r.id,
                     position: [r.lat, r.lng] as [number, number],
                     icon: createIcon(reportTypeConfig[r.type].icon),
-                    popupContent: (
-                      <div className="text-sm">
-                        <p className="font-bold">{r.title}</p>
-                        <p className="text-xs text-muted-foreground mt-1">{r.address}</p>
-                        <p className="text-xs mt-1">{r.description}</p>
-                        <p className="text-xs font-medium mt-1">👍 {r.votes} voti</p>
-                      </div>
-                    ),
+                    popupContent: {
+                      title: r.title,
+                      address: r.address,
+                      description: r.description,
+                      votes: r.votes,
+                    },
                   }))}
                 />
               </Suspense>

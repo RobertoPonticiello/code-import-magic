@@ -1,5 +1,4 @@
-import { useEffect } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -27,19 +26,18 @@ export const userLocationIcon = L.divIcon({
   iconAnchor: [8, 8],
 });
 
-function MapUpdater({ center }: { center: [number, number] }) {
-  const map = useMap();
-  useEffect(() => {
-    map.setView(center, 14);
-  }, [center, map]);
-  return null;
+interface PopupContent {
+  title: string;
+  address?: string;
+  description?: string;
+  votes?: number;
 }
 
 interface MapMarker {
   id: string;
   position: [number, number];
   icon?: L.DivIcon;
-  popupContent?: React.ReactNode;
+  popupContent?: PopupContent;
 }
 
 interface LeafletMapProps {
@@ -50,24 +48,98 @@ interface LeafletMapProps {
   className?: string;
 }
 
-export default function LeafletMap({ center, zoom = 14, markers = [], showUserMarker = true, className = "h-full w-full" }: LeafletMapProps) {
-  return (
-    <MapContainer center={center} zoom={zoom} className={className} scrollWheelZoom={true}>
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-      <MapUpdater center={center} />
-      {showUserMarker && (
-        <Marker position={center} icon={userLocationIcon}>
-          <Popup>La tua posizione</Popup>
-        </Marker>
-      )}
-      {markers.map((m) => (
-        <Marker key={m.id} position={m.position} icon={m.icon}>
-          {m.popupContent && <Popup>{m.popupContent}</Popup>}
-        </Marker>
-      ))}
-    </MapContainer>
-  );
+function createPopupNode(content: PopupContent) {
+  const wrapper = document.createElement("div");
+  wrapper.className = "text-sm";
+
+  const title = document.createElement("p");
+  title.className = "font-bold";
+  title.textContent = content.title;
+  wrapper.appendChild(title);
+
+  if (content.address) {
+    const address = document.createElement("p");
+    address.className = "text-xs text-muted-foreground mt-1";
+    address.textContent = content.address;
+    wrapper.appendChild(address);
+  }
+
+  if (content.description) {
+    const description = document.createElement("p");
+    description.className = "text-xs mt-1";
+    description.textContent = content.description;
+    wrapper.appendChild(description);
+  }
+
+  if (typeof content.votes === "number") {
+    const votes = document.createElement("p");
+    votes.className = "text-xs font-medium mt-1";
+    votes.textContent = `👍 ${content.votes} voti`;
+    wrapper.appendChild(votes);
+  }
+
+  return wrapper;
+}
+
+export default function LeafletMap({
+  center,
+  zoom = 14,
+  markers = [],
+  showUserMarker = true,
+  className = "h-full w-full",
+}: LeafletMapProps) {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const mapRef = useRef<L.Map | null>(null);
+  const markerLayerRef = useRef<L.LayerGroup | null>(null);
+
+  useEffect(() => {
+    if (!containerRef.current || mapRef.current) return;
+
+    const map = L.map(containerRef.current, {
+      zoomControl: true,
+      scrollWheelZoom: true,
+    }).setView(center, zoom);
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    }).addTo(map);
+
+    markerLayerRef.current = L.layerGroup().addTo(map);
+    mapRef.current = map;
+
+    return () => {
+      markerLayerRef.current?.clearLayers();
+      markerLayerRef.current = null;
+      map.remove();
+      mapRef.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!mapRef.current) return;
+    mapRef.current.setView(center, zoom);
+  }, [center, zoom]);
+
+  useEffect(() => {
+    const markerLayer = markerLayerRef.current;
+    if (!markerLayer) return;
+
+    markerLayer.clearLayers();
+
+    if (showUserMarker) {
+      L.marker(center, { icon: userLocationIcon }).bindPopup("La tua posizione").addTo(markerLayer);
+    }
+
+    markers.forEach((markerData) => {
+      const marker = L.marker(markerData.position, { icon: markerData.icon });
+
+      if (markerData.popupContent) {
+        marker.bindPopup(createPopupNode(markerData.popupContent));
+      }
+
+      marker.addTo(markerLayer);
+    });
+  }, [center, markers, showUserMarker]);
+
+  return <div ref={containerRef} className={className} aria-label="Mappa del quartiere" />;
 }
