@@ -1,0 +1,4 @@
+id,nome_stanza,altezza,larghezza,profondita,esposizione_finestra,consumo,sensore_temperatura,sensore_umidita,sensore_co2,descrizione
+1,Boardroom,3.2,6.0,8.0,sud,120,22.5,45,600,Schermo 85 pollici
+2,Riunioni A,2.8,5.0,7.0,est,90,21.8,50,550,Proiettore
+3,Riunioni B,3.0,4.5,6.5,ovest,150,23.0,48,700,Whiteboard grande
