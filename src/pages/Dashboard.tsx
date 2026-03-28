@@ -38,18 +38,25 @@ function AqiIndicator({ level, color, pm25 }: { level: string; color: string; pm
 }
 
 export function Dashboard() {
-  const [envData, setEnvData] = useState<EnvData | null>(null);
+  const { user } = useAuth();
+  const { location } = useUserLocation();
+  const [aqData, setAqData] = useState<AirQualityData | null>(null);
+  const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
   const [actions] = useState<EcoAction[]>(getDailyActions());
   const [completedIds, setCompletedIds] = useState<string[]>([]);
   const [co2Saved, setCo2Saved] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchEnvData().then((data) => {
-      setEnvData(data);
+    Promise.all([
+      fetchAirQuality(location.latitude, location.longitude),
+      fetchWeather(location.latitude, location.longitude),
+    ]).then(([aq, w]) => {
+      setAqData(aq.current);
+      setWeatherData(w);
       setLoading(false);
-    });
-  }, []);
+    }).catch(() => setLoading(false));
+  }, [location.latitude, location.longitude]);
 
   const handleComplete = (action: EcoAction) => {
     if (completedIds.includes(action.id)) return;
