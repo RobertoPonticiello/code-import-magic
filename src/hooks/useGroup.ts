@@ -140,7 +140,7 @@ export function useGroup() {
     }
 
     await fetchGroup();
-    return groupData;
+    return { id: groupId };
   };
 
   const leaveGroup = async () => {
