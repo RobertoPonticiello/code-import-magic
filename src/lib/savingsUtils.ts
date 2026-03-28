@@ -31,11 +31,13 @@ export function co2ToEurosByCategory(category: keyof typeof SAVINGS_RATES, co2Kg
   return co2Kg * (SAVINGS_RATES[category] || SAVINGS_RATES.general);
 }
 
-/** Format euro amount for display */
+/** Format euro amount for display (supports negative = extra cost) */
 export function formatEuros(amount: number): string {
-  if (amount < 0.01) return "0,00€";
-  if (amount < 10) return `${amount.toFixed(2).replace(".", ",")}€`;
-  return `${amount.toFixed(1).replace(".", ",")}€`;
+  const abs = Math.abs(amount);
+  const sign = amount < 0 ? "-" : "";
+  if (abs < 0.01) return "0,00€";
+  if (abs < 10) return `${sign}${abs.toFixed(2).replace(".", ",")}€`;
+  return `${sign}${abs.toFixed(1).replace(".", ",")}€`;
 }
 
 /** Estimate annual savings from weekly carbon profile (by category) */
@@ -50,10 +52,10 @@ export function annualSavingsFromProfile(
   // National average breakdown (approximate)
   const natAvg = { transport: 3.0, diet: 2.2, home: 1.8, shopping: 1.2 };
 
-  const savTransport = Math.max(0, natAvg.transport - profile.transport) * SAVINGS_RATES.transport;
-  const savDiet = Math.max(0, natAvg.diet - profile.diet) * SAVINGS_RATES.diet;
-  const savHome = Math.max(0, natAvg.home - profile.home) * SAVINGS_RATES.home;
-  const savShopping = Math.max(0, natAvg.shopping - profile.shopping) * SAVINGS_RATES.shopping;
+  const savTransport = (natAvg.transport - profile.transport) * SAVINGS_RATES.transport;
+  const savDiet = (natAvg.diet - profile.diet) * SAVINGS_RATES.diet;
+  const savHome = (natAvg.home - profile.home) * SAVINGS_RATES.home;
+  const savShopping = (natAvg.shopping - profile.shopping) * SAVINGS_RATES.shopping;
   const weeklyTotal = savTransport + savDiet + savHome + savShopping;
 
   return {
