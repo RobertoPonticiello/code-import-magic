@@ -14,6 +14,9 @@ export interface CompletedAction {
   action_difficulty: string;
   co2_grams: number;
   completed_at: string;
+  user_note: string | null;
+  rating: number | null;
+  image_url: string | null;
 }
 
 export function useCompletedActions() {
@@ -35,7 +38,7 @@ export function useCompletedActions() {
 
   useEffect(() => { fetchActions(); }, [fetchActions]);
 
-  const completeAction = async (action: EcoAction) => {
+  const completeAction = async (action: EcoAction, extra?: { note: string; rating: number; imageUrl: string | null }) => {
     if (!user) return null;
     const { data, error } = await supabase.from("completed_actions").insert({
       user_id: user.id,
@@ -45,6 +48,9 @@ export function useCompletedActions() {
       action_category: action.category,
       action_difficulty: action.difficulty,
       co2_grams: action.co2_grams,
+      user_note: extra?.note || null,
+      rating: extra?.rating || null,
+      image_url: extra?.imageUrl || null,
     }).select().single();
     if (!error && data) {
       setActions((p) => [data as CompletedAction, ...p]);
