@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Users, Crown, Copy, LogOut, Plus, KeyRound, Flag, Star, Loader2, AlertTriangle, Check } from "lucide-react";
+import { Users, Crown, Copy, LogOut, Plus, KeyRound, Flag, Star, Loader2, AlertTriangle, Check, Coins, Wallet, TrendingUp, TrendingDown } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useGroup, useGroupActions, useGroupLeaderboard } from "@/hooks/useGroup";
+import { useJackpot } from "@/hooks/useJackpot";
 import { co2GramsToEuros, formatEuros } from "@/lib/savingsUtils";
 
 const fadeUp = {
@@ -100,8 +101,11 @@ export default function Group() {
   const { actions, loading: actionsLoading, flagAction } = useGroupActions();
   const { leaderboard } = useGroupLeaderboard(members, actions);
   const { toast } = useToast();
+  const memberIds = members.map((m) => m.user_id);
+  const { jackpot, userHasJoined, totalPot, proposeJackpot, joinJackpot, cancelJackpot, awardWinner, getMemberBalance } = useJackpot(group?.id || null, memberIds);
   const [copied, setCopied] = useState(false);
   const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
+  const [jackpotAmount, setJackpotAmount] = useState("2");
   const [tab, setTab] = useState<"classifica" | "feed">("classifica");
 
   if (loading) {
@@ -182,8 +186,80 @@ export default function Group() {
         </Card>
       </motion.div>
 
-      {/* Tabs */}
+      {/* Jackpot Card */}
       <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={2}>
+        <Card className="border-amber-500/20 bg-gradient-to-r from-amber-500/5 to-transparent">
+          <CardContent className="p-5 space-y-3">
+            <div className="flex items-center gap-2">
+              <Coins className="w-5 h-5 text-amber-500" />
+              <h3 className="font-bold text-foreground">Jackpot Settimanale</h3>
+              {jackpot && (
+                <span className="ml-auto text-sm font-bold text-amber-500">💰 €{totalPot.toFixed(2)} in palio</span>
+              )}
+            </div>
+
+            {!jackpot ? (
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground">Proponi un importo (uguale per tutti, max €5) come premio per il vincitore della settimana.</p>
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 bg-card border border-border rounded-lg px-3 py-2">
+                    <span className="text-sm text-muted-foreground">€</span>
+                    <input
+                      type="number"
+                      min="1"
+                      max="5"
+                      step="1"
+                      value={jackpotAmount}
+                      onChange={(e) => setJackpotAmount(e.target.value)}
+                      className="w-12 bg-transparent text-foreground text-sm font-bold focus:outline-none"
+                    />
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      proposeJackpot(Number(jackpotAmount));
+                      toast({ title: "Jackpot proposto! 🎰", description: `€${jackpotAmount} a testa` });
+                    }}
+                    className="gap-1"
+                  >
+                    <Coins className="w-3.5 h-3.5" /> Proponi
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground">€{jackpot.amountPerPerson} a testa · {jackpot.participants.length}/{members.length} partecipanti</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {!userHasJoined && (
+                    <Button size="sm" onClick={() => {
+                      joinJackpot();
+                      toast({ title: "Hai partecipato al jackpot! 💰" });
+                    }} className="gap-1">
+                      <Wallet className="w-3.5 h-3.5" /> Paga €{jackpot.amountPerPerson} (mock)
+                    </Button>
+                  )}
+                  {userHasJoined && (
+                    <span className="text-xs text-primary font-semibold flex items-center gap-1">
+                      <Check className="w-3.5 h-3.5" /> Hai pagato
+                    </span>
+                  )}
+                  <Button size="sm" variant="ghost" onClick={() => {
+                    cancelJackpot();
+                    toast({ title: "Jackpot annullato" });
+                  }} className="text-xs text-muted-foreground">
+                    Annulla jackpot
+                  </Button>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      {/* Tabs */}
+      <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={3}>
         <div className="flex gap-1 bg-muted p-1 rounded-xl">
           {[
             { id: "classifica" as const, label: "Classifica Settimanale", icon: Crown },
@@ -217,7 +293,9 @@ export default function Group() {
               {leaderboard.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-8">Nessuna azione questa settimana ancora!</p>
               ) : (
-                leaderboard.map((entry, i) => (
+                leaderboard.map((entry, i) => {
+                  const bal = getMemberBalance(entry.user_id);
+                  return (
                   <motion.div
                     key={entry.user_id}
                     initial={{ opacity: 0, x: -20 }}
@@ -240,10 +318,16 @@ export default function Group() {
                       <p className={`text-sm font-semibold ${entry.user_id === user?.id ? "text-primary" : "text-foreground"}`}>
                         {entry.display_name} {entry.user_id === user?.id && "(Tu)"}
                       </p>
-                      <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                      <div className="flex items-center gap-2 text-[10px] text-muted-foreground flex-wrap">
                         {entry.crowns > 0 && (
                           <span className="flex items-center gap-0.5 text-amber-500 font-semibold">
-                            <Crown className="w-3 h-3" /> {entry.crowns}
+                            <Crown className="w-3 h-3" /> {entry.crowns} coron{entry.crowns === 1 ? "a" : "e"}
+                          </span>
+                        )}
+                        {(bal.totalWon > 0 || bal.totalPaid > 0) && (
+                          <span className={`flex items-center gap-0.5 font-semibold ${bal.net >= 0 ? "text-emerald-500" : "text-destructive"}`}>
+                            {bal.net >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                            {bal.net >= 0 ? "+" : ""}€{bal.net.toFixed(2)}
                           </span>
                         )}
                       </div>
@@ -253,7 +337,8 @@ export default function Group() {
                       <p className="text-[10px] text-muted-foreground">CO₂ settimana</p>
                     </div>
                   </motion.div>
-                ))
+                  );
+                })
               )}
             </CardContent>
           </Card>

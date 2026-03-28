@@ -3,13 +3,15 @@ import { motion } from "framer-motion";
 import {
   Leaf, MapPin, Trophy, Flame, TrendingUp, Zap,
   Droplets, ShoppingBag, Car, Utensils, Home, Award,
-  BarChart3, Target, TreePine, Recycle, Loader2, History, Euro
+  BarChart3, Target, TreePine, Recycle, Loader2, History, Euro, Crown, Coins
 } from "lucide-react";
 import { co2GramsToEuros, formatEuros, annualSavingsFromProfile, co2ToEurosByCategory } from "@/lib/savingsUtils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserStats, useAllCompletedActions, useCarbonProfile } from "@/hooks/useUserData";
+import { useGroup } from "@/hooks/useGroup";
+import { useJackpot } from "@/hooks/useJackpot";
 import { getBadges } from "@/lib/mockData";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 
@@ -50,7 +52,15 @@ export default function Profile() {
   const { stats, loading: statsLoading } = useUserStats();
   const { actions: recentActions, loading: actionsLoading } = useAllCompletedActions();
   const { profile: carbonProfile, history: carbonHistory } = useCarbonProfile();
+  const { group, members } = useGroup();
+  const memberIds = members.map((m) => m.user_id);
+  const { getMemberBalance } = useJackpot(group?.id || null, memberIds);
   const badges = getBadges();
+
+  // Get current user's crowns from group members
+  const userMember = members.find((m) => m.user_id === user?.id);
+  const userCrowns = userMember?.crowns || 0;
+  const userBalance = user ? getMemberBalance(user.id) : { totalWon: 0, totalPaid: 0, net: 0 };
 
   const totalCo2Kg = (stats?.total_co2_grams || 0) / 1000;
   const xp = stats?.xp || 0;
@@ -139,13 +149,23 @@ export default function Profile() {
                     { icon: Leaf, value: `${derivedStats.totalCo2Kg.toFixed(1)}kg`, label: "CO₂ salvati" },
                     { icon: Euro, value: formatEuros(derivedStats.eurosSaved), label: "Risparmiati" },
                     { icon: Target, value: derivedStats.totalActions, label: "Azioni" },
+                    ...(userCrowns > 0 ? [{ icon: Crown, value: userCrowns, label: "Corone" }] : []),
                   ].map((s) => (
                     <div key={s.label} className="flex items-center gap-1.5">
                       <s.icon className="w-4 h-4 text-primary" />
-                      <span className="text-sm font-bold text-foreground">{s.value}</span>
+                      <span className="text-sm font-bold text-foreground">{String(s.value)}</span>
                       <span className="text-xs text-muted-foreground">{s.label}</span>
                     </div>
                   ))}
+                  {(userBalance.totalWon > 0 || userBalance.totalPaid > 0) && (
+                    <div className="flex items-center gap-1.5">
+                      <Coins className="w-4 h-4 text-amber-500" />
+                      <span className={`text-sm font-bold ${userBalance.net >= 0 ? "text-emerald-500" : "text-destructive"}`}>
+                        {userBalance.net >= 0 ? "+" : ""}€{userBalance.net.toFixed(2)}
+                      </span>
+                      <span className="text-xs text-muted-foreground">Saldo jackpot</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
