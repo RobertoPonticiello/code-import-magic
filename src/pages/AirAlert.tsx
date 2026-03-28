@@ -137,6 +137,9 @@ export default function AirAlert() {
           <MapPin className="w-3.5 h-3.5" />
           Qualità dell'aria in tempo reale — {location.city || "La tua posizione"}
         </p>
+        <p className="text-sm text-muted-foreground mt-1">
+          📅 {new Date().toLocaleDateString("it-IT", { weekday: "long", day: "numeric", month: "long", year: "numeric" })} · 🕐 {new Date().toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" })}
+        </p>
         <p className="text-[10px] text-muted-foreground mt-0.5">
           Fonte: Open-Meteo Air Quality API · Indice European AQI
         </p>
