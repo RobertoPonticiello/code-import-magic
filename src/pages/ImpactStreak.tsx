@@ -168,10 +168,10 @@ export default function ImpactStreak() {
   const levelInfo = getLevel(xp);
 
   const statCards = [
-    { label: "Streak Corrente", value: `${stats?.streak_days || 0} giorni`, icon: Flame, color: "text-orange-500" },
-    { label: "Azioni Totali", value: `${stats?.total_actions || 0}`, icon: Star, color: "text-amber-500" },
+    { label: "Streak Corrente", value: `${stats?.streak_days || 0} giorni`, icon: Flame, color: "text-orange-600 dark:text-orange-400" },
+    { label: "Azioni Totali", value: `${stats?.total_actions || 0}`, icon: Star, color: "text-amber-600 dark:text-amber-400" },
     { label: "CO₂ Risparmiata", value: `${((stats?.total_co2_grams || 0) / 1000).toFixed(1)} kg`, icon: TrendingUp, color: "text-primary" },
-    { label: "XP Totali", value: `${xp}`, icon: Medal, color: "text-blue-500" },
+    { label: "XP Totali", value: `${xp}`, icon: Medal, color: "text-blue-600 dark:text-blue-400" },
   ];
 
   return (
@@ -245,7 +245,7 @@ export default function ImpactStreak() {
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
-                <Trophy className="w-5 h-5 text-amber-500" />
+                <Trophy className="w-5 h-5 text-amber-600 dark:text-amber-400" />
                 Classifica — Chi salva di più
               </CardTitle>
             </CardHeader>

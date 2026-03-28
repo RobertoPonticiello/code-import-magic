@@ -83,10 +83,10 @@ export default function Profile() {
   const initials = displayName.split(" ").map((w: string) => w[0]).join("").toUpperCase().slice(0, 2);
 
   const categories = cp.total > 0 ? [
-    { label: "Trasporti", value: cp.transport, icon: Car, color: "text-blue-500" },
-    { label: "Alimentazione", value: cp.diet, icon: Utensils, color: "text-orange-500" },
-    { label: "Casa", value: cp.home, icon: Home, color: "text-amber-500" },
-    { label: "Acquisti", value: cp.shopping, icon: ShoppingBag, color: "text-purple-500" },
+    { label: "Trasporti", value: cp.transport, icon: Car, color: "text-blue-600 dark:text-blue-400" },
+    { label: "Alimentazione", value: cp.diet, icon: Utensils, color: "text-orange-600 dark:text-orange-400" },
+    { label: "Casa", value: cp.home, icon: Home, color: "text-amber-600 dark:text-amber-400" },
+    { label: "Acquisti", value: cp.shopping, icon: ShoppingBag, color: "text-purple-600 dark:text-purple-400" },
   ] : [];
 
   if (statsLoading) {
