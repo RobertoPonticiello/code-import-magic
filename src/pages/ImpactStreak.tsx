@@ -1,10 +1,9 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Trophy, Flame, Star, Medal, Lock, TrendingUp, Target, Users, Loader2, Euro, Gift, Clock } from "lucide-react";
+import { Trophy, Flame, Star, TrendingUp, Loader2, Euro, Gift, Clock } from "lucide-react";
 import { co2GramsToEuros, formatEuros } from "@/lib/savingsUtils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { getBadges, getWeeklyChallenges } from "@/lib/mockData";
 import { useUserStats, useLeaderboard } from "@/hooks/useUserData";
 
 const fadeUp = {
