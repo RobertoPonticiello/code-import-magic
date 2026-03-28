@@ -7,6 +7,7 @@ import {
   Menu, X, ChevronRight, LogOut, Sun, Moon, BookOpen
 } from "lucide-react";
 import useTheme from "@/hooks/use-theme";
+import { NotificationCenter } from "@/components/NotificationCenter";
 
 const navItems = [
   { path: "/", label: "Dashboard", icon: LayoutDashboard, desc: "Panoramica" },
@@ -126,11 +127,17 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           >
             <Menu className="w-5 h-5 text-foreground" />
           </button>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-1">
             <Leaf className="w-5 h-5 text-primary" />
             <span className="font-bold text-foreground">EcoSignal</span>
           </div>
+          <NotificationCenter />
         </header>
+
+        {/* Desktop notification bell */}
+        <div className="hidden lg:flex sticky top-0 z-30 bg-card/80 backdrop-blur-xl border-b border-border px-6 py-2.5 justify-end">
+          <NotificationCenter />
+        </div>
 
         {/* Page content */}
         <main className="flex-1 overflow-y-auto">
