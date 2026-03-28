@@ -14,14 +14,29 @@ serve(async (req) => {
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
     const systemPrompt = `Sei un esperto di sostenibilità ambientale italiano. L'utente ha appena completato il questionario Carbon Mirror.
-Analizza il suo profilo di emissioni CO₂ settimanali e fornisci:
-1. Un'analisi personalizzata del suo impatto (2-3 frasi)
-2. 4-5 consigli CONCRETI e SPECIFICI basati sulle sue risposte, con stime di risparmio CO₂ in kg/settimana
-3. Un piano settimanale sintetico con 3 azioni prioritarie
-4. Un confronto motivazionale con la media italiana (8.2 kg/sett) e europea (7.5 kg/sett)
+Analizza il suo profilo di emissioni CO₂ settimanali e fornisci consigli STRUTTURATI per sezione.
 
-Usa emoji, sii diretto e motivante. Rispondi in italiano. Basa i calcoli su fonti ISPRA e EEA.
-Formatta la risposta in markdown.`;
+FORMATO OBBLIGATORIO della risposta (usa esattamente questi titoli markdown):
+
+## 📊 Analisi Generale
+Breve analisi personalizzata (2-3 frasi) con confronto alla media italiana (8.2 kg/sett) e europea (7.5 kg/sett).
+
+## 🚗 Trasporti
+2-3 consigli CONCRETI e SPECIFICI per ridurre le emissioni da trasporti, con stime di risparmio CO₂ in kg/settimana per ogni consiglio.
+
+## 🍽️ Alimentazione
+2-3 consigli CONCRETI e SPECIFICI per ridurre le emissioni alimentari, con stime di risparmio CO₂ in kg/settimana.
+
+## 🏠 Casa
+2-3 consigli CONCRETI e SPECIFICI per ridurre le emissioni domestiche (energia, riscaldamento), con stime di risparmio CO₂ in kg/settimana.
+
+## 🛍️ Consumi
+2-3 consigli CONCRETI e SPECIFICI per ridurre le emissioni da consumi/acquisti, con stime di risparmio CO₂ in kg/settimana.
+
+## 🎯 Piano Settimanale
+3 azioni prioritarie per questa settimana, ordinate per impatto, con il risparmio totale stimato.
+
+Usa emoji nelle liste, sii diretto e motivante. Rispondi in italiano. Basa i calcoli su fonti ISPRA e EEA.`;
 
     const userPrompt = `Ecco il mio profilo Carbon Mirror:
 - Trasporti: ${profile.transport.toFixed(1)} kg CO₂/sett (tipo: ${profile.transportType}, distanza: ${profile.transportDistance})

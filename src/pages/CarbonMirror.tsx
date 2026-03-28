@@ -344,19 +344,28 @@ function ResultsView({ answers, answerLabels }: { answers: Record<string, number
           {aiLoading && !aiTips && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Loader2 className="w-4 h-4 animate-spin" />
-              L'AI sta analizzando il tuo profilo...
+              L'AI sta analizzando il tuo profilo per categoria...
             </div>
           )}
 
           {aiTips && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="prose prose-sm max-w-none text-foreground">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="prose prose-sm max-w-none text-foreground [&_h2]:text-base [&_h2]:font-bold [&_h2]:mt-6 [&_h2]:mb-2 [&_h2]:pb-2 [&_h2]:border-b [&_h2]:border-border [&_h2:first-child]:mt-0 [&_ul]:space-y-1 [&_li]:text-sm [&_p]:text-sm">
               <ReactMarkdown>{aiTips}</ReactMarkdown>
             </motion.div>
           )}
 
+          {aiTips && (
+            <div className="pt-2 border-t border-border">
+              <Button size="sm" variant="outline" onClick={fetchAiTips} disabled={aiLoading} className="gap-1">
+                {aiLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                Rigenera consigli
+              </Button>
+            </div>
+          )}
+
           {!aiTips && !aiLoading && (
             <p className="text-sm text-muted-foreground">
-              Clicca "Genera consigli" per ricevere suggerimenti personalizzati basati sulle tue risposte, con stime di risparmio CO₂ e un piano settimanale.
+              Clicca "Genera consigli" per ricevere suggerimenti personalizzati suddivisi per Trasporti, Alimentazione, Casa e Consumi.
             </p>
           )}
         </CardContent>
