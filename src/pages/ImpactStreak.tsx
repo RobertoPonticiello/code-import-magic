@@ -78,16 +78,16 @@ function BadgeGrid() {
 }
 
 const WEEKLY_PRIZES = [
-  { rank: 1, emoji: "🥇", prize: "Buono EcoShop 25€", description: "Gift card per prodotti eco-sostenibili", color: "from-amber-400/20 to-amber-500/5 border-amber-400/30" },
-  { rank: 2, emoji: "🥈", prize: "Buono EcoShop 15€", description: "Gift card per prodotti eco-sostenibili", color: "from-slate-300/20 to-slate-400/5 border-slate-400/30" },
-  { rank: 3, emoji: "🥉", prize: "Buono EcoShop 10€", description: "Gift card per prodotti eco-sostenibili", color: "from-amber-600/20 to-amber-700/5 border-amber-600/30" },
-  { rank: 4, emoji: "4️⃣", prize: "Badge Esclusivo + 500 XP", description: "Badge unico e boost esperienza", color: "" },
-  { rank: 5, emoji: "5️⃣", prize: "Badge Esclusivo + 400 XP", description: "Badge unico e boost esperienza", color: "" },
-  { rank: 6, emoji: "6️⃣", prize: "300 XP Bonus", description: "Boost di esperienza extra", color: "" },
-  { rank: 7, emoji: "7️⃣", prize: "250 XP Bonus", description: "Boost di esperienza extra", color: "" },
-  { rank: 8, emoji: "8️⃣", prize: "200 XP Bonus", description: "Boost di esperienza extra", color: "" },
-  { rank: 9, emoji: "9️⃣", prize: "150 XP Bonus", description: "Boost di esperienza extra", color: "" },
-  { rank: 10, emoji: "🔟", prize: "100 XP Bonus", description: "Boost di esperienza extra", color: "" },
+  { rank: 1, emoji: "🥇", prize: "Buono EcoShop 50€", description: "Gift card per prodotti eco-sostenibili + Badge Oro + 1000 XP", color: "from-amber-400/20 to-amber-500/5 border-amber-400/30" },
+  { rank: 2, emoji: "🥈", prize: "Buono EcoShop 35€", description: "Gift card per prodotti eco-sostenibili + Badge Argento + 750 XP", color: "from-slate-300/20 to-slate-400/5 border-slate-400/30" },
+  { rank: 3, emoji: "🥉", prize: "Buono EcoShop 25€", description: "Gift card per prodotti eco-sostenibili + Badge Bronzo + 500 XP", color: "from-amber-600/20 to-amber-700/5 border-amber-600/30" },
+  { rank: 4, emoji: "4️⃣", prize: "Buono EcoShop 20€", description: "Gift card + 400 XP Bonus", color: "" },
+  { rank: 5, emoji: "5️⃣", prize: "Buono EcoShop 15€", description: "Gift card + 350 XP Bonus", color: "" },
+  { rank: 6, emoji: "6️⃣", prize: "Buono EcoShop 12€", description: "Gift card + 300 XP Bonus", color: "" },
+  { rank: 7, emoji: "7️⃣", prize: "Buono EcoShop 10€", description: "Gift card + 250 XP Bonus", color: "" },
+  { rank: 8, emoji: "8️⃣", prize: "Buono EcoShop 8€", description: "Gift card + 200 XP Bonus", color: "" },
+  { rank: 9, emoji: "9️⃣", prize: "Buono EcoShop 6€", description: "Gift card + 150 XP Bonus", color: "" },
+  { rank: 10, emoji: "🔟", prize: "Buono EcoShop 5€", description: "Gift card + 100 XP Bonus", color: "" },
 ];
 
 function WeeklyPrizes() {
