@@ -98,9 +98,9 @@ function Leaderboard() {
           }`}
         >
           <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-            user.rank === 1 ? "bg-amber-400 text-amber-900" :
-            user.rank === 2 ? "bg-gray-300 text-gray-700" :
-            user.rank === 3 ? "bg-amber-600 text-amber-100" :
+            user.rank === 1 ? "bg-amber-400 text-amber-950" :
+            user.rank === 2 ? "bg-muted-foreground/30 text-foreground" :
+            user.rank === 3 ? "bg-amber-600 text-amber-50" :
             "bg-muted text-muted-foreground"
           }`}>
             {user.rank <= 3 ? ["🥇", "🥈", "🥉"][user.rank - 1] : user.rank}
