@@ -245,17 +245,20 @@ export default function ImpactStreak() {
         {tab === "sfide" && <WeeklyChallenges />}
         {tab === "badges" && <BadgeGrid />}
         {tab === "classifica" && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Trophy className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-                Classifica — Chi salva di più
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Leaderboard />
-            </CardContent>
-          </Card>
+          <div className="space-y-6">
+            <WeeklyPrizes />
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Trophy className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                  Classifica — Chi salva di più
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Leaderboard />
+              </CardContent>
+            </Card>
+          </div>
         )}
       </motion.div>
     </div>
