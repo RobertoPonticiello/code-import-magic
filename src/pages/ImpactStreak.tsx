@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Trophy, Flame, Star, Medal, Lock, TrendingUp, Target, Users, Loader2, Euro, Gift } from "lucide-react";
+import { Trophy, Flame, Star, Medal, Lock, TrendingUp, Target, Users, Loader2, Euro, Gift, Clock } from "lucide-react";
 import { co2GramsToEuros, formatEuros } from "@/lib/savingsUtils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -90,83 +90,100 @@ const WEEKLY_PRIZES = [
   { rank: 10, emoji: "🔟", prize: "Buono EcoShop 5€", description: "Gift card + 100 XP Bonus", color: "" },
 ];
 
-function WeeklyPrizes() {
-  return (
-    <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-lg flex items-center gap-2">
-          <Gift className="w-5 h-5 text-primary" />
-          Premi Settimanali
-        </CardTitle>
-        <p className="text-xs text-muted-foreground">I top 10 della classifica generale vincono premi ogni settimana!</p>
-      </CardHeader>
-      <CardContent className="space-y-2">
-        {WEEKLY_PRIZES.map((p, i) => (
-          <motion.div
-            key={p.rank}
-            initial={{ opacity: 0, x: -15 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: i * 0.04 }}
-            className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
-              p.rank <= 3 ? `bg-gradient-to-r ${p.color}` : "bg-card border-border"
-            }`}
-          >
-            <span className="text-xl w-8 text-center">{p.emoji}</span>
-            <div className="flex-1 min-w-0">
-              <p className={`text-sm font-semibold ${p.rank <= 3 ? "text-foreground" : "text-muted-foreground"}`}>{p.prize}</p>
-              <p className="text-[10px] text-muted-foreground">{p.description}</p>
-            </div>
-            <span className="text-xs font-bold text-muted-foreground shrink-0">#{p.rank}</span>
-          </motion.div>
-        ))}
-      </CardContent>
-    </Card>
-  );
+function useCountdown() {
+  const [timeLeft, setTimeLeft] = useState("");
+  useEffect(() => {
+    const calc = () => {
+      const now = new Date();
+      const nextSunday = new Date(now);
+      nextSunday.setDate(now.getDate() + (7 - now.getDay()) % 7 || 7);
+      nextSunday.setHours(0, 0, 0, 0);
+      if (now.getDay() === 0 && now.getHours() === 0 && now.getMinutes() === 0) {
+        nextSunday.setDate(nextSunday.getDate() + 7);
+      }
+      const diff = nextSunday.getTime() - now.getTime();
+      const d = Math.floor(diff / 86400000);
+      const h = Math.floor((diff % 86400000) / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+      setTimeLeft(`${d}g ${h}h ${m}m ${s}s`);
+    };
+    calc();
+    const interval = setInterval(calc, 1000);
+    return () => clearInterval(interval);
+  }, []);
+  return timeLeft;
 }
 
-function Leaderboard() {
+function LeaderboardWithPrizes() {
   const { entries, loading } = useLeaderboard();
+  const countdown = useCountdown();
 
   if (loading) return <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 text-primary animate-spin" /></div>;
 
-  if (entries.length === 0) {
-    return <p className="text-sm text-muted-foreground text-center py-8">Nessun dato disponibile. Completa azioni per entrare in classifica!</p>;
-  }
-
   return (
-    <div className="space-y-2">
-      {entries.map((user, i) => (
-        <motion.div
-          key={user.rank}
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: i * 0.05 }}
-          className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
-            user.isUser ? "bg-primary/5 border-primary/20 shadow-sm" : "bg-card border-border"
-          }`}
-        >
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-            user.rank === 1 ? "bg-amber-400 text-amber-950" :
-            user.rank === 2 ? "bg-muted-foreground/30 text-foreground" :
-            user.rank === 3 ? "bg-amber-600 text-amber-50" :
-            "bg-muted text-muted-foreground"
-          }`}>
-            {user.rank <= 3 ? ["🥇", "🥈", "🥉"][user.rank - 1] : user.rank}
-          </div>
-          <span className="text-xl">{user.avatar}</span>
-          <div className="flex-1 min-w-0">
-            <p className={`text-sm font-semibold ${user.isUser ? "text-primary" : "text-foreground"}`}>
-              {user.name} {user.isUser && "(Tu)"}
-            </p>
-            <p className="text-[10px] text-muted-foreground">{user.actions} azioni · {user.streak} giorni streak</p>
-          </div>
-          <div className="text-right">
-            <p className="text-sm font-bold text-primary">{user.co2_kg} kg</p>
-            <p className="text-[10px] text-muted-foreground">CO₂ risparmiata</p>
-          </div>
-        </motion.div>
-      ))}
-    </div>
+    <Card className="border-primary/20">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-lg flex items-center gap-2">
+          <Trophy className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+          Classifica & Premi Settimanali
+        </CardTitle>
+        <div className="flex items-center gap-2 mt-2 bg-muted/50 rounded-lg px-3 py-2">
+          <Clock className="w-4 h-4 text-primary" />
+          <span className="text-xs text-muted-foreground">Premi sbloccati tra:</span>
+          <span className="text-sm font-bold text-primary font-mono">{countdown}</span>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-2">
+        {entries.length === 0 ? (
+          <p className="text-sm text-muted-foreground text-center py-8">Nessun dato disponibile. Completa azioni per entrare in classifica!</p>
+        ) : (
+          entries.map((user, i) => {
+            const prize = WEEKLY_PRIZES.find(p => p.rank === user.rank);
+            return (
+              <motion.div
+                key={user.rank}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.05 }}
+                className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
+                  user.rank <= 3 && prize
+                    ? `bg-gradient-to-r ${prize.color}`
+                    : user.isUser
+                      ? "bg-primary/5 border-primary/20 shadow-sm"
+                      : "bg-card border-border"
+                }`}
+              >
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${
+                  user.rank === 1 ? "bg-amber-400 text-amber-950" :
+                  user.rank === 2 ? "bg-muted-foreground/30 text-foreground" :
+                  user.rank === 3 ? "bg-amber-600 text-amber-50" :
+                  "bg-muted text-muted-foreground"
+                }`}>
+                  {user.rank <= 3 ? ["🥇", "🥈", "🥉"][user.rank - 1] : user.rank}
+                </div>
+                <span className="text-xl shrink-0">{user.avatar}</span>
+                <div className="flex-1 min-w-0">
+                  <p className={`text-sm font-semibold ${user.isUser ? "text-primary" : "text-foreground"}`}>
+                    {user.name} {user.isUser && "(Tu)"}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground">{user.actions} azioni · {user.streak}g streak · {user.co2_kg} kg CO₂</p>
+                </div>
+                {prize && (
+                  <div className="text-right shrink-0">
+                    <p className="text-xs font-bold text-primary flex items-center gap-1 justify-end">
+                      <Gift className="w-3 h-3" />
+                      {prize.prize}
+                    </p>
+                    <p className="text-[9px] text-muted-foreground max-w-[120px] text-right">{prize.description}</p>
+                  </div>
+                )}
+              </motion.div>
+            );
+          })
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
@@ -291,22 +308,7 @@ export default function ImpactStreak() {
       <motion.div key={tab} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2 }}>
         {tab === "sfide" && <WeeklyChallenges />}
         {tab === "badges" && <BadgeGrid />}
-        {tab === "classifica" && (
-          <div className="space-y-6">
-            <WeeklyPrizes />
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Trophy className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-                  Classifica — Chi salva di più
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Leaderboard />
-              </CardContent>
-            </Card>
-          </div>
-        )}
+        {tab === "classifica" && <LeaderboardWithPrizes />}
       </motion.div>
     </div>
   );
