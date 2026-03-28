@@ -83,7 +83,18 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         </nav>
 
         {/* Footer */}
-        <div className="p-4 border-t border-border">
+        <div className="p-4 border-t border-border space-y-3">
+          {user && (
+            <div className="flex items-center justify-between">
+              <div className="min-w-0">
+                <p className="text-xs font-medium text-foreground truncate">{user.user_metadata?.full_name || user.email}</p>
+                <p className="text-[10px] text-muted-foreground truncate">{user.email}</p>
+              </div>
+              <button onClick={signOut} className="p-2 rounded-lg hover:bg-accent transition-colors shrink-0" title="Esci">
+                <LogOut className="w-4 h-4 text-muted-foreground" />
+              </button>
+            </div>
+          )}
           <div className="bg-accent rounded-xl p-4">
             <p className="text-xs font-semibold text-accent-foreground mb-1">Hackathon 2026</p>
             <p className="text-[10px] text-muted-foreground leading-relaxed">
