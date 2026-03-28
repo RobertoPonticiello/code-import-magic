@@ -11,6 +11,7 @@ import AirAlert from "./pages/AirAlert";
 import ImpactStreak from "./pages/ImpactStreak";
 import ActionHistory from "./pages/ActionHistory";
 import Group from "./pages/Group";
+import EcoShop from "./pages/EcoShop";
 
 import Profile from "./pages/Profile";
 import Auth from "./pages/Auth";
@@ -54,6 +55,7 @@ function AppRoutes() {
       <Route path="/impact-streak" element={<ProtectedRoute><AppLayout><ImpactStreak /></AppLayout></ProtectedRoute>} />
       <Route path="/action-history" element={<ProtectedRoute><AppLayout><ActionHistory /></AppLayout></ProtectedRoute>} />
       <Route path="/group" element={<ProtectedRoute><AppLayout><Group /></AppLayout></ProtectedRoute>} />
+      <Route path="/eco-shop" element={<ProtectedRoute><AppLayout><EcoShop /></AppLayout></ProtectedRoute>} />
       
       <Route path="/profile" element={<ProtectedRoute><AppLayout><Profile /></AppLayout></ProtectedRoute>} />
       <Route path="*" element={<NotFound />} />
