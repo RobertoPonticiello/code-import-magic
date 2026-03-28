@@ -186,8 +186,80 @@ export default function Group() {
         </Card>
       </motion.div>
 
-      {/* Tabs */}
+      {/* Jackpot Card */}
       <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={2}>
+        <Card className="border-amber-500/20 bg-gradient-to-r from-amber-500/5 to-transparent">
+          <CardContent className="p-5 space-y-3">
+            <div className="flex items-center gap-2">
+              <Coins className="w-5 h-5 text-amber-500" />
+              <h3 className="font-bold text-foreground">Jackpot Settimanale</h3>
+              {jackpot && (
+                <span className="ml-auto text-sm font-bold text-amber-500">💰 €{totalPot.toFixed(2)} in palio</span>
+              )}
+            </div>
+
+            {!jackpot ? (
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground">Proponi un importo (uguale per tutti, max €5) come premio per il vincitore della settimana.</p>
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 bg-card border border-border rounded-lg px-3 py-2">
+                    <span className="text-sm text-muted-foreground">€</span>
+                    <input
+                      type="number"
+                      min="1"
+                      max="5"
+                      step="1"
+                      value={jackpotAmount}
+                      onChange={(e) => setJackpotAmount(e.target.value)}
+                      className="w-12 bg-transparent text-foreground text-sm font-bold focus:outline-none"
+                    />
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      proposeJackpot(Number(jackpotAmount));
+                      toast({ title: "Jackpot proposto! 🎰", description: `€${jackpotAmount} a testa` });
+                    }}
+                    className="gap-1"
+                  >
+                    <Coins className="w-3.5 h-3.5" /> Proponi
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground">€{jackpot.amountPerPerson} a testa · {jackpot.participants.length}/{members.length} partecipanti</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {!userHasJoined && (
+                    <Button size="sm" onClick={() => {
+                      joinJackpot();
+                      toast({ title: "Hai partecipato al jackpot! 💰" });
+                    }} className="gap-1">
+                      <Wallet className="w-3.5 h-3.5" /> Paga €{jackpot.amountPerPerson} (mock)
+                    </Button>
+                  )}
+                  {userHasJoined && (
+                    <span className="text-xs text-primary font-semibold flex items-center gap-1">
+                      <Check className="w-3.5 h-3.5" /> Hai pagato
+                    </span>
+                  )}
+                  <Button size="sm" variant="ghost" onClick={() => {
+                    cancelJackpot();
+                    toast({ title: "Jackpot annullato" });
+                  }} className="text-xs text-muted-foreground">
+                    Annulla jackpot
+                  </Button>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      {/* Tabs */}
+      <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={3}>
         <div className="flex gap-1 bg-muted p-1 rounded-xl">
           {[
             { id: "classifica" as const, label: "Classifica Settimanale", icon: Crown },
