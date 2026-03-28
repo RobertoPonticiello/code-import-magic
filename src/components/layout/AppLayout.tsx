@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   LayoutDashboard, Leaf, Wind, Trophy, MapPin, Footprints,
-  Menu, X, ChevronRight
+  Menu, X, ChevronRight, LogOut
 } from "lucide-react";
 
 const navItems = [
@@ -17,6 +18,7 @@ const navItems = [
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { user, signOut } = useAuth();
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -81,7 +83,18 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         </nav>
 
         {/* Footer */}
-        <div className="p-4 border-t border-border">
+        <div className="p-4 border-t border-border space-y-3">
+          {user && (
+            <div className="flex items-center justify-between">
+              <div className="min-w-0">
+                <p className="text-xs font-medium text-foreground truncate">{user.user_metadata?.full_name || user.email}</p>
+                <p className="text-[10px] text-muted-foreground truncate">{user.email}</p>
+              </div>
+              <button onClick={signOut} className="p-2 rounded-lg hover:bg-accent transition-colors shrink-0" title="Esci">
+                <LogOut className="w-4 h-4 text-muted-foreground" />
+              </button>
+            </div>
+          )}
           <div className="bg-accent rounded-xl p-4">
             <p className="text-xs font-semibold text-accent-foreground mb-1">Hackathon 2026</p>
             <p className="text-[10px] text-muted-foreground leading-relaxed">

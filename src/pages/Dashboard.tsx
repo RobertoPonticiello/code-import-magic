@@ -8,7 +8,10 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { fetchEnvData, getDailyActions, type EnvData, type EcoAction } from "@/lib/mockData";
+import { getDailyActions, type EcoAction } from "@/lib/mockData";
+import { useUserLocation } from "@/hooks/useUserLocation";
+import { fetchAirQuality, fetchWeather, type AirQualityData, type WeatherData } from "@/lib/airQualityApi";
+import { useAuth } from "@/contexts/AuthContext";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -35,18 +38,25 @@ function AqiIndicator({ level, color, pm25 }: { level: string; color: string; pm
 }
 
 export function Dashboard() {
-  const [envData, setEnvData] = useState<EnvData | null>(null);
+  const { user } = useAuth();
+  const { location } = useUserLocation();
+  const [aqData, setAqData] = useState<AirQualityData | null>(null);
+  const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
   const [actions] = useState<EcoAction[]>(getDailyActions());
   const [completedIds, setCompletedIds] = useState<string[]>([]);
   const [co2Saved, setCo2Saved] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchEnvData().then((data) => {
-      setEnvData(data);
+    Promise.all([
+      fetchAirQuality(location.latitude, location.longitude),
+      fetchWeather(location.latitude, location.longitude),
+    ]).then(([aq, w]) => {
+      setAqData(aq.current);
+      setWeatherData(w);
       setLoading(false);
-    });
-  }, []);
+    }).catch(() => setLoading(false));
+  }, [location.latitude, location.longitude]);
 
   const handleComplete = (action: EcoAction) => {
     if (completedIds.includes(action.id)) return;
@@ -78,9 +88,9 @@ export function Dashboard() {
       <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={0}>
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-foreground tracking-tight">Buongiorno! 🌿</h1>
+            <h1 className="text-3xl font-bold text-foreground tracking-tight">Buongiorno{user?.user_metadata?.full_name ? `, ${user.user_metadata.full_name.split(' ')[0]}` : ''}! 🌿</h1>
             <p className="text-muted-foreground mt-1">
-              {new Date().toLocaleDateString("it-IT", { weekday: "long", day: "numeric", month: "long" })} — Roma
+              {new Date().toLocaleDateString("it-IT", { weekday: "long", day: "numeric", month: "long" })} — {location.city || "La tua posizione"}
             </p>
           </div>
           <div className="flex items-center gap-2 bg-accent rounded-xl px-4 py-2">
@@ -95,14 +105,14 @@ export function Dashboard() {
         {[
           {
             title: "Qualità Aria",
-            content: <AqiIndicator level={envData!.aqi_level} color={envData!.aqi_color} pm25={envData!.aqi_pm25} />,
-            subtitle: envData!.aqi_level,
+            content: aqData ? <AqiIndicator level={aqData.level} color={aqData.color} pm25={aqData.pm25} /> : null,
+            subtitle: aqData?.level || "—",
             icon: Wind,
           },
           {
             title: "Temperatura",
-            content: <p className="text-3xl font-bold text-foreground">{envData!.temperature}°C</p>,
-            subtitle: `Umidità ${envData!.humidity}%`,
+            content: <p className="text-3xl font-bold text-foreground">{weatherData?.temperature ?? "—"}°C</p>,
+            subtitle: `Umidità ${weatherData?.humidity ?? "—"}%`,
             icon: Thermometer,
           },
           {
@@ -247,7 +257,7 @@ export function Dashboard() {
 
           {/* Data source */}
           <div className="text-center text-[10px] text-muted-foreground">
-            <p>Dati: {envData?.source}</p>
+            <p>Dati: Open-Meteo Air Quality + Forecast (live)</p>
             <p className="mt-0.5">Aggiornato in tempo reale</p>
           </div>
         </motion.div>
