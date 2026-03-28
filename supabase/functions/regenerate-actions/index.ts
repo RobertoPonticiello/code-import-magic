@@ -9,7 +9,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { currentActions, feedback, userCity } = await req.json();
+    const { currentActions, feedback, userCity, completedActionTitles } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
@@ -27,13 +27,19 @@ Genera esattamente 6 azioni. Ogni azione deve avere stime CO2 REALISTICHE e CONS
 Le azioni devono essere DIVERSE tra le categorie: trasporti, alimentazione, energia, rifiuti, acqua.
 Ogni azione deve avere una emoji appropriata come icona.
 
-IMPORTANTE: Considera il feedback dell'utente per personalizzare le azioni. Se l'utente dice che un'azione non è rilevante, sostituiscila con qualcosa di più adatto.`;
+IMPORTANTE: Considera il feedback dell'utente per personalizzare le azioni. Se l'utente dice che un'azione non è rilevante, sostituiscila con qualcosa di più adatto.
+
+REGOLA FONDAMENTALE: NON generare azioni che l'utente ha GIÀ COMPLETATO oggi. Le azioni completate sono elencate separatamente. Genera SOLO azioni nuove e diverse.`;
+
+    const completedList = (completedActionTitles || []).length > 0
+      ? `\nAzioni GIÀ COMPLETATE oggi (NON rigenerare queste): ${JSON.stringify(completedActionTitles)}`
+      : "";
 
     const userPrompt = `Azioni attuali: ${JSON.stringify(currentActions?.map((a: any) => a.title) || [])}
-
+${completedList}
 Feedback dell'utente: "${feedback || "Nessun feedback"}"
 
-Genera 6 nuove azioni personalizzate basate sul feedback.`;
+Genera 6 nuove azioni personalizzate basate sul feedback. NON includere azioni già completate.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",

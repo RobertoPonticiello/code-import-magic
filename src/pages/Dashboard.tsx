@@ -103,6 +103,7 @@ export function Dashboard() {
           currentActions: actions,
           feedback,
           userCity: location.city || "Roma",
+          completedActionTitles: completedActions.map((a) => a.action_title),
         }),
       });
 
@@ -115,7 +116,11 @@ export function Dashboard() {
 
       const data = await resp.json();
       if (data.actions?.length) {
-        setActions(data.actions);
+        // Keep completed actions, replace only uncompleted ones
+        const keptActions = actions.filter((a) => isCompleted(a.title));
+        const newActions = data.actions.filter((a: EcoAction) => !keptActions.some((k) => k.title === a.title));
+        const merged = [...keptActions, ...newActions].slice(0, 6);
+        setActions(merged);
         setFeedback("");
         setShowFeedback(false);
         toast({ title: "Azioni rigenerate! 🌿", description: "Le nuove azioni sono personalizzate in base al tuo feedback" });
