@@ -3,13 +3,15 @@ import { motion } from "framer-motion";
 import {
   Leaf, MapPin, Trophy, Flame, TrendingUp, Zap,
   Droplets, ShoppingBag, Car, Utensils, Home, Award,
-  BarChart3, Target, TreePine, Recycle, Loader2, History, Euro
+  BarChart3, Target, TreePine, Recycle, Loader2, History, Euro, Crown
 } from "lucide-react";
 import { co2GramsToEuros, formatEuros, annualSavingsFromProfile, co2ToEurosByCategory } from "@/lib/savingsUtils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserStats, useAllCompletedActions, useCarbonProfile } from "@/hooks/useUserData";
+import { useGroup } from "@/hooks/useGroup";
+import { useJackpot } from "@/hooks/useJackpot";
 import { getBadges } from "@/lib/mockData";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 

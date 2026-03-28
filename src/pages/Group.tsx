@@ -293,7 +293,9 @@ export default function Group() {
               {leaderboard.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-8">Nessuna azione questa settimana ancora!</p>
               ) : (
-                leaderboard.map((entry, i) => (
+                leaderboard.map((entry, i) => {
+                  const bal = getMemberBalance(entry.user_id);
+                  return (
                   <motion.div
                     key={entry.user_id}
                     initial={{ opacity: 0, x: -20 }}
@@ -316,10 +318,16 @@ export default function Group() {
                       <p className={`text-sm font-semibold ${entry.user_id === user?.id ? "text-primary" : "text-foreground"}`}>
                         {entry.display_name} {entry.user_id === user?.id && "(Tu)"}
                       </p>
-                      <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                      <div className="flex items-center gap-2 text-[10px] text-muted-foreground flex-wrap">
                         {entry.crowns > 0 && (
                           <span className="flex items-center gap-0.5 text-amber-500 font-semibold">
-                            <Crown className="w-3 h-3" /> {entry.crowns}
+                            <Crown className="w-3 h-3" /> {entry.crowns} coron{entry.crowns === 1 ? "a" : "e"}
+                          </span>
+                        )}
+                        {(bal.totalWon > 0 || bal.totalPaid > 0) && (
+                          <span className={`flex items-center gap-0.5 font-semibold ${bal.net >= 0 ? "text-emerald-500" : "text-destructive"}`}>
+                            {bal.net >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                            {bal.net >= 0 ? "+" : ""}€{bal.net.toFixed(2)}
                           </span>
                         )}
                       </div>
@@ -329,7 +337,8 @@ export default function Group() {
                       <p className="text-[10px] text-muted-foreground">CO₂ settimana</p>
                     </div>
                   </motion.div>
-                ))
+                  );
+                })
               )}
             </CardContent>
           </Card>
