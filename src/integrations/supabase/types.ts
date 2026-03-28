@@ -390,6 +390,7 @@ export type Database = {
         Args: { _group_id: string; _user_id: string }
         Returns: boolean
       }
+      lookup_group_by_invite_code: { Args: { _code: string }; Returns: string }
       resolve_weekly_winners: { Args: never; Returns: undefined }
       vote_report: { Args: { p_report_id: string }; Returns: undefined }
     }
