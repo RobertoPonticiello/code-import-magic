@@ -1,21 +1,21 @@
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import { motion } from "framer-motion";
 import {
   Leaf, MapPin, Trophy, Flame, TrendingUp, Zap,
   Droplets, ShoppingBag, Car, Utensils, Home, Award,
-  BarChart3, Target, TreePine, Recycle
+  BarChart3, Target, TreePine, Recycle, Loader2
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/contexts/AuthContext";
-import { getCarbonProfile, getBadges, type EcoAction } from "@/lib/mockData";
+import { useUserStats, useAllCompletedActions, useCarbonProfile } from "@/hooks/useUserData";
+import { getBadges } from "@/lib/mockData";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
   visible: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.07, duration: 0.45 } }),
 };
 
-// XP / level system
 function getLevel(xp: number) {
   const levels = [
     { min: 0, name: "Germoglio", icon: "🌱", next: 500 },
@@ -45,53 +45,65 @@ function getLevel(xp: number) {
 
 export default function Profile() {
   const { user } = useAuth();
-  const carbonProfile = getCarbonProfile();
+  const { stats, loading: statsLoading } = useUserStats();
+  const { actions: recentActions, loading: actionsLoading } = useAllCompletedActions();
+  const { profile: carbonProfile } = useCarbonProfile();
   const badges = getBadges();
 
-  // Pull completed actions from localStorage
-  const completedActions: EcoAction[] = useMemo(() => {
-    try { return JSON.parse(localStorage.getItem("eco_completed_actions") || "[]"); }
-    catch { return []; }
-  }, []);
-
-  const totalCo2Grams = completedActions.reduce((sum, a) => sum + (a.co2_grams || 0), 0);
-  const totalCo2Kg = totalCo2Grams / 1000;
-
-  // Fake cumulative stats (would come from DB in production)
-  const stats = {
-    totalActions: 22 + completedActions.length,
-    totalCo2Kg: 8.2 + totalCo2Kg,
-    streakDays: 7,
-    reports: 3,
-    treesEquiv: ((8.2 + totalCo2Kg) / 21).toFixed(1), // ~21kg CO2/tree/year
-    kmSaved: ((8.2 + totalCo2Kg) * 5.5).toFixed(0),
-  };
-
-  const xp = stats.totalActions * 50 + stats.streakDays * 30 + stats.reports * 100;
+  const totalCo2Kg = (stats?.total_co2_grams || 0) / 1000;
+  const xp = stats?.xp || 0;
   const levelInfo = getLevel(xp);
 
-  const unlockedBadges = badges.filter((b) => b.unlocked);
-  const lockedBadges = badges.filter((b) => !b.unlocked);
+  const derivedStats = {
+    totalActions: stats?.total_actions || 0,
+    totalCo2Kg,
+    streakDays: stats?.streak_days || 0,
+    reports: stats?.total_reports || 0,
+    treesEquiv: (totalCo2Kg / 21).toFixed(1),
+    kmSaved: (totalCo2Kg * 5.5).toFixed(0),
+  };
+
+  // Use real carbon profile or defaults
+  const cp = carbonProfile || { transport: 0, diet: 0, home: 0, shopping: 0, total: 0 };
+  const nationalAvg = 8.2;
+  const europeanAvg = 7.5;
+
+  const unlockedBadges = badges.filter((b) => {
+    // Dynamically unlock badges based on real stats
+    if (b.id === "b1") return derivedStats.totalActions >= 1;
+    if (b.id === "b2") return derivedStats.totalActions >= 10;
+    if (b.id === "b3") return derivedStats.streakDays >= 7;
+    if (b.id === "b4") return totalCo2Kg >= 5;
+    if (b.id === "b5") return derivedStats.reports >= 3;
+    return false;
+  });
+  const lockedBadges = badges.filter((b) => !unlockedBadges.some((u) => u.id === b.id));
 
   const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Utente";
   const initials = displayName.split(" ").map((w: string) => w[0]).join("").toUpperCase().slice(0, 2);
 
-  // Category breakdown from carbon profile
-  const categories = [
-    { label: "Trasporti", value: carbonProfile.transport, icon: Car, color: "text-blue-500" },
-    { label: "Alimentazione", value: carbonProfile.diet, icon: Utensils, color: "text-orange-500" },
-    { label: "Casa", value: carbonProfile.home, icon: Home, color: "text-amber-500" },
-    { label: "Acquisti", value: carbonProfile.shopping, icon: ShoppingBag, color: "text-purple-500" },
-  ];
+  const categories = cp.total > 0 ? [
+    { label: "Trasporti", value: cp.transport, icon: Car, color: "text-blue-500" },
+    { label: "Alimentazione", value: cp.diet, icon: Utensils, color: "text-orange-500" },
+    { label: "Casa", value: cp.home, icon: Home, color: "text-amber-500" },
+    { label: "Acquisti", value: cp.shopping, icon: ShoppingBag, color: "text-purple-500" },
+  ] : [];
+
+  if (statsLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 lg:p-8 max-w-5xl mx-auto space-y-6">
-      {/* Hero card: Avatar + Level + Key stats */}
+      {/* Hero card */}
       <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={0}>
         <Card className="overflow-hidden">
           <div className="bg-gradient-to-r from-primary/20 via-primary/10 to-transparent p-6 sm:p-8">
             <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
-              {/* Avatar */}
               <div className="relative">
                 <div className="w-24 h-24 rounded-2xl bg-primary flex items-center justify-center text-3xl font-bold text-primary-foreground shadow-lg">
                   {initials}
@@ -100,8 +112,6 @@ export default function Profile() {
                   {levelInfo.icon}
                 </div>
               </div>
-
-              {/* Info */}
               <div className="flex-1 text-center sm:text-left space-y-3">
                 <div>
                   <h1 className="text-2xl font-bold text-foreground">{displayName}</h1>
@@ -110,25 +120,19 @@ export default function Profile() {
                     <span className="text-sm text-muted-foreground">Roma, Italia</span>
                   </div>
                 </div>
-
-                {/* Level bar */}
                 <div className="space-y-1.5 max-w-sm">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="font-bold text-foreground">
-                      Lv. {levelInfo.level} — {levelInfo.name}
-                    </span>
+                    <span className="font-bold text-foreground">Lv. {levelInfo.level} — {levelInfo.name}</span>
                     <span className="text-muted-foreground">{xp} / {levelInfo.nextXp} XP</span>
                   </div>
                   <Progress value={levelInfo.progress} className="h-2.5" />
                 </div>
-
-                {/* Quick stats row */}
                 <div className="flex flex-wrap justify-center sm:justify-start gap-4 pt-1">
                   {[
-                    { icon: Flame, value: `${stats.streakDays}g`, label: "Streak" },
-                    { icon: Leaf, value: `${stats.totalCo2Kg.toFixed(1)}kg`, label: "CO₂ salvati" },
-                    { icon: Target, value: stats.totalActions, label: "Azioni" },
-                    { icon: MapPin, value: stats.reports, label: "Segnalazioni" },
+                    { icon: Flame, value: `${derivedStats.streakDays}g`, label: "Streak" },
+                    { icon: Leaf, value: `${derivedStats.totalCo2Kg.toFixed(1)}kg`, label: "CO₂ salvati" },
+                    { icon: Target, value: derivedStats.totalActions, label: "Azioni" },
+                    { icon: MapPin, value: derivedStats.reports, label: "Segnalazioni" },
                   ].map((s) => (
                     <div key={s.label} className="flex items-center gap-1.5">
                       <s.icon className="w-4 h-4 text-primary" />
@@ -146,10 +150,10 @@ export default function Profile() {
       {/* Stats grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { title: "Alberi equivalenti", value: stats.treesEquiv, unit: "🌳", desc: "CO₂ assorbita/anno" },
-          { title: "Km non percorsi", value: stats.kmSaved, unit: "🚗", desc: "in auto evitati" },
-          { title: "Impronta annua", value: `${carbonProfile.total}t`, unit: "📊", desc: `Media IT: ${carbonProfile.nationalAvg}t` },
-          { title: "Risparmio vs media", value: `${((1 - carbonProfile.total / carbonProfile.nationalAvg) * 100).toFixed(0)}%`, unit: "📉", desc: "sotto la media nazionale" },
+          { title: "Alberi equivalenti", value: derivedStats.treesEquiv, unit: "🌳", desc: "CO₂ assorbita/anno" },
+          { title: "Km non percorsi", value: derivedStats.kmSaved, unit: "🚗", desc: "in auto evitati" },
+          { title: "Impronta annua", value: cp.total > 0 ? `${cp.total.toFixed(1)}t` : "—", unit: "📊", desc: cp.total > 0 ? `Media IT: ${nationalAvg}t` : "Completa il Carbon Mirror" },
+          { title: "Risparmio vs media", value: cp.total > 0 ? `${((1 - cp.total / nationalAvg) * 100).toFixed(0)}%` : "—", unit: "📉", desc: cp.total > 0 ? "sotto la media nazionale" : "Dati non disponibili" },
         ].map((stat, i) => (
           <motion.div key={stat.title} initial="hidden" animate="visible" variants={fadeUp} custom={i + 1}>
             <Card className="h-full hover:shadow-md transition-shadow">
@@ -173,34 +177,40 @@ export default function Profile() {
                 <BarChart3 className="w-5 h-5 text-primary" />
                 <h3 className="font-bold text-foreground">Impronta per Categoria</h3>
               </div>
-              <div className="space-y-3">
-                {categories.map((cat) => {
-                  const pct = (cat.value / carbonProfile.total) * 100;
-                  return (
-                    <div key={cat.label} className="space-y-1">
-                      <div className="flex items-center justify-between text-sm">
-                        <div className="flex items-center gap-2">
-                          <cat.icon className={`w-4 h-4 ${cat.color}`} />
-                          <span className="font-medium text-foreground">{cat.label}</span>
+              {categories.length > 0 ? (
+                <div className="space-y-3">
+                  {categories.map((cat) => {
+                    const pct = cp.total > 0 ? (cat.value / cp.total) * 100 : 0;
+                    return (
+                      <div key={cat.label} className="space-y-1">
+                        <div className="flex items-center justify-between text-sm">
+                          <div className="flex items-center gap-2">
+                            <cat.icon className={`w-4 h-4 ${cat.color}`} />
+                            <span className="font-medium text-foreground">{cat.label}</span>
+                          </div>
+                          <span className="text-muted-foreground">{cat.value.toFixed(1)}t CO₂/anno</span>
                         </div>
-                        <span className="text-muted-foreground">{cat.value}t CO₂/anno</span>
+                        <div className="h-2 bg-accent rounded-full overflow-hidden">
+                          <motion.div
+                            className="h-full bg-primary rounded-full"
+                            initial={{ width: 0 }}
+                            animate={{ width: `${pct}%` }}
+                            transition={{ duration: 0.8, delay: 0.3 }}
+                          />
+                        </div>
                       </div>
-                      <div className="h-2 bg-accent rounded-full overflow-hidden">
-                        <motion.div
-                          className="h-full bg-primary rounded-full"
-                          initial={{ width: 0 }}
-                          animate={{ width: `${pct}%` }}
-                          transition={{ duration: 0.8, delay: 0.3 }}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-              <div className="pt-2 border-t border-border flex justify-between text-xs text-muted-foreground">
-                <span>Totale: <strong className="text-foreground">{carbonProfile.total}t</strong>/anno</span>
-                <span>Media EU: {carbonProfile.europeanAvg}t</span>
-              </div>
+                    );
+                  })}
+                  <div className="pt-2 border-t border-border flex justify-between text-xs text-muted-foreground">
+                    <span>Totale: <strong className="text-foreground">{cp.total.toFixed(1)}t</strong>/anno</span>
+                    <span>Media EU: {europeanAvg}t</span>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground text-center py-6">
+                  Completa il Carbon Mirror per vedere la tua impronta 🪞
+                </p>
+              )}
             </CardContent>
           </Card>
         </motion.div>
@@ -218,26 +228,24 @@ export default function Profile() {
                   {unlockedBadges.length}/{badges.length}
                 </span>
               </div>
-
-              {/* Unlocked */}
-              <div className="grid grid-cols-4 gap-3">
-                {unlockedBadges.map((badge) => (
-                  <div key={badge.id} className="text-center group" title={`${badge.name}: ${badge.description}`}>
-                    <div className="w-12 h-12 mx-auto rounded-xl bg-primary/10 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
-                      {badge.icon}
+              {unlockedBadges.length > 0 && (
+                <div className="grid grid-cols-4 gap-3">
+                  {unlockedBadges.map((badge) => (
+                    <div key={badge.id} className="text-center group" title={`${badge.name}: ${badge.description}`}>
+                      <div className="w-12 h-12 mx-auto rounded-xl bg-primary/10 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+                        {badge.icon}
+                      </div>
+                      <p className="text-[10px] font-medium text-foreground mt-1 truncate">{badge.name}</p>
                     </div>
-                    <p className="text-[10px] font-medium text-foreground mt-1 truncate">{badge.name}</p>
-                  </div>
-                ))}
-              </div>
-
-              {/* Locked */}
+                  ))}
+                </div>
+              )}
               {lockedBadges.length > 0 && (
                 <>
                   <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Da sbloccare</p>
                   <div className="grid grid-cols-4 gap-3">
                     {lockedBadges.map((badge) => (
-                      <div key={badge.id} className="text-center opacity-40" title={`${badge.requirement}`}>
+                      <div key={badge.id} className="text-center opacity-40" title={badge.requirement}>
                         <div className="w-12 h-12 mx-auto rounded-xl bg-accent flex items-center justify-center text-2xl grayscale">
                           {badge.icon}
                         </div>
@@ -252,7 +260,7 @@ export default function Profile() {
         </motion.div>
       </div>
 
-      {/* Azioni recenti completate */}
+      {/* Recent completed actions */}
       <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={7}>
         <Card>
           <CardContent className="p-5 space-y-4">
@@ -260,16 +268,16 @@ export default function Profile() {
               <Recycle className="w-5 h-5 text-primary" />
               <h3 className="font-bold text-foreground">Azioni Completate di Recente</h3>
             </div>
-            {completedActions.length > 0 ? (
+            {recentActions.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {completedActions.slice(0, 6).map((action, i) => (
+                {recentActions.slice(0, 6).map((action) => (
                   <div
-                    key={action.id || i}
+                    key={action.id}
                     className="flex items-center gap-3 p-3 rounded-xl bg-primary/5 border border-primary/10"
                   >
-                    <span className="text-xl">{action.icon}</span>
+                    <span className="text-xl">{action.action_icon}</span>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-foreground truncate">{action.title}</p>
+                      <p className="text-sm font-medium text-foreground truncate">{action.action_title}</p>
                       <p className="text-xs text-primary font-bold">-{action.co2_grams}g CO₂</p>
                     </div>
                   </div>
