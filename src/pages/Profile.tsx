@@ -133,7 +133,7 @@ export default function Profile() {
                     { icon: Flame, value: `${derivedStats.streakDays}g`, label: "Streak" },
                     { icon: Leaf, value: `${derivedStats.totalCo2Kg.toFixed(1)}kg`, label: "CO₂ salvati" },
                     { icon: Target, value: derivedStats.totalActions, label: "Azioni" },
-                    { icon: MapPin, value: derivedStats.reports, label: "Segnalazioni" },
+                    { icon: MapPin, value: derivedStats.reports, label: "Carbon Mirror" },
                   ].map((s) => (
                     <div key={s.label} className="flex items-center gap-1.5">
                       <s.icon className="w-4 h-4 text-primary" />
@@ -360,7 +360,7 @@ export default function Profile() {
                 <ul className="text-xs text-muted-foreground mt-2 space-y-1">
                   <li>✅ Completa azioni quotidiane → <strong className="text-foreground">+50 XP</strong> ciascuna</li>
                   <li>🔥 Mantieni la streak → <strong className="text-foreground">+30 XP</strong> al giorno</li>
-                  <li>📍 Fai segnalazioni su Quartiere Vivo → <strong className="text-foreground">+100 XP</strong></li>
+                  
                   <li>🪞 Aggiorna il tuo Carbon Mirror periodicamente</li>
                 </ul>
               </div>
