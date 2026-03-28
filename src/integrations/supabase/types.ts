@@ -108,7 +108,10 @@ export type Database = {
           co2_grams: number
           completed_at: string
           id: string
+          image_url: string | null
+          rating: number | null
           user_id: string
+          user_note: string | null
         }
         Insert: {
           action_category?: string
@@ -119,7 +122,10 @@ export type Database = {
           co2_grams?: number
           completed_at?: string
           id?: string
+          image_url?: string | null
+          rating?: number | null
           user_id: string
+          user_note?: string | null
         }
         Update: {
           action_category?: string
@@ -130,7 +136,10 @@ export type Database = {
           co2_grams?: number
           completed_at?: string
           id?: string
+          image_url?: string | null
+          rating?: number | null
           user_id?: string
+          user_note?: string | null
         }
         Relationships: []
       }

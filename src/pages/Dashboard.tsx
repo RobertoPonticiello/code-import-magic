@@ -16,6 +16,7 @@ import { fetchAirQuality, fetchWeather, type AirQualityData, type WeatherData } 
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useCompletedActions, useUserStats } from "@/hooks/useUserData";
+import { ActionCompleteDialog } from "@/components/ActionCompleteDialog";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -57,6 +58,7 @@ export function Dashboard() {
   const [feedback, setFeedback] = useState("");
   const [regenerating, setRegenerating] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
+  const [dialogAction, setDialogAction] = useState<EcoAction | null>(null);
 
   useEffect(() => {
     Promise.all([
@@ -72,10 +74,15 @@ export function Dashboard() {
   const handleToggle = async (action: EcoAction) => {
     if (isCompleted(action.title)) {
       await uncompleteAction(action.title);
+      setTimeout(() => refetchStats(), 500);
     } else {
-      await completeAction(action);
+      setDialogAction(action);
     }
-    // Refresh stats after a short delay for trigger to complete
+  };
+
+  const handleDialogConfirm = async (action: EcoAction, extra: { note: string; rating: number; imageUrl: string | null }) => {
+    await completeAction(action, extra);
+    setDialogAction(null);
     setTimeout(() => refetchStats(), 500);
   };
 
@@ -346,7 +353,7 @@ export function Dashboard() {
                 { label: "La tua impronta di carbonio", path: "/carbon-mirror", icon: "🪞" },
                 { label: "Allerte aria in tempo reale", path: "/air-alert", icon: "🌡️" },
                 { label: "Sfide e classifiche", path: "/impact-streak", icon: "🏆" },
-                
+                { label: "Diario delle azioni", path: "/action-history", icon: "📔" },
                 { label: "Il tuo profilo eco", path: "/profile", icon: "🌿" },
               ].map((link) => (
                 <Link
@@ -369,6 +376,12 @@ export function Dashboard() {
           </div>
         </motion.div>
       </div>
+      <ActionCompleteDialog
+        action={dialogAction}
+        open={!!dialogAction}
+        onClose={() => setDialogAction(null)}
+        onConfirm={handleDialogConfirm}
+      />
     </div>
   );
 }
