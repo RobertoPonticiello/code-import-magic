@@ -14,6 +14,126 @@ export type Database = {
   }
   public: {
     Tables: {
+      carbon_profiles: {
+        Row: {
+          answers: Json | null
+          created_at: string
+          diet: number
+          home: number
+          id: string
+          shopping: number
+          total: number
+          transport: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          answers?: Json | null
+          created_at?: string
+          diet?: number
+          home?: number
+          id?: string
+          shopping?: number
+          total?: number
+          transport?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          answers?: Json | null
+          created_at?: string
+          diet?: number
+          home?: number
+          id?: string
+          shopping?: number
+          total?: number
+          transport?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      community_reports: {
+        Row: {
+          address: string | null
+          created_at: string
+          description: string
+          id: string
+          lat: number
+          lng: number
+          severity: string
+          status: string
+          title: string
+          type: string
+          user_id: string
+          votes: number
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          description: string
+          id?: string
+          lat: number
+          lng: number
+          severity: string
+          status?: string
+          title: string
+          type: string
+          user_id: string
+          votes?: number
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          lat?: number
+          lng?: number
+          severity?: string
+          status?: string
+          title?: string
+          type?: string
+          user_id?: string
+          votes?: number
+        }
+        Relationships: []
+      }
+      completed_actions: {
+        Row: {
+          action_category: string
+          action_description: string | null
+          action_difficulty: string
+          action_icon: string | null
+          action_title: string
+          co2_grams: number
+          completed_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          action_category?: string
+          action_description?: string | null
+          action_difficulty?: string
+          action_icon?: string | null
+          action_title: string
+          co2_grams?: number
+          completed_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          action_category?: string
+          action_description?: string | null
+          action_difficulty?: string
+          action_icon?: string | null
+          action_title?: string
+          co2_grams?: number
+          completed_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -50,12 +170,80 @@ export type Database = {
         }
         Relationships: []
       }
+      report_votes: {
+        Row: {
+          created_at: string
+          id: string
+          report_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          report_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          report_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_votes_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "community_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_stats: {
+        Row: {
+          created_at: string
+          id: string
+          last_action_date: string | null
+          streak_days: number
+          total_actions: number
+          total_co2_grams: number
+          total_reports: number
+          updated_at: string
+          user_id: string
+          xp: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_action_date?: string | null
+          streak_days?: number
+          total_actions?: number
+          total_co2_grams?: number
+          total_reports?: number
+          updated_at?: string
+          user_id: string
+          xp?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_action_date?: string | null
+          streak_days?: number
+          total_actions?: number
+          total_co2_grams?: number
+          total_reports?: number
+          updated_at?: string
+          user_id?: string
+          xp?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      vote_report: { Args: { p_report_id: string }; Returns: undefined }
     }
     Enums: {
       [_ in never]: never

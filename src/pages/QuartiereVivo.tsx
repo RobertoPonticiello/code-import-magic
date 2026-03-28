@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from "react";
+import { useState, lazy, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, ThumbsUp, Clock, AlertTriangle, CheckCircle, Filter, X, Send, MapPin, Loader2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -6,8 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { useUserLocation } from "@/hooks/useUserLocation";
-import { getCommunityReports, reportTypeConfig, severityConfig, type CommunityReport } from "@/lib/mockData";
+import { reportTypeConfig, severityConfig } from "@/lib/mockData";
+import { useCommunityReports, type Report } from "@/hooks/useUserData";
 import { createDivIcon } from "@/components/LeafletMap";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 const LeafletMap = lazy(() => import("@/components/LeafletMap"));
 
@@ -22,15 +25,15 @@ const statusConfig = {
   risolta: { label: "Risolta", icon: CheckCircle, color: "text-emerald-500 bg-emerald-500/10" },
 };
 
-// Custom marker icon helper
 function createIcon(emoji: string) {
   return createDivIcon(`<div style="font-size:24px;text-align:center;line-height:1">${emoji}</div>`);
 }
 
-function ReportCard({ report, onVote }: { report: CommunityReport; onVote: (id: string) => void }) {
-  const typeConf = reportTypeConfig[report.type];
-  const sevConf = severityConfig[report.severity];
-  const statusConf = statusConfig[report.status];
+function ReportCard({ report, onVote }: { report: Report; onVote: (id: string) => void }) {
+  const typeConf = reportTypeConfig[report.type as keyof typeof reportTypeConfig];
+  const sevConf = severityConfig[report.severity as keyof typeof severityConfig];
+  const statusConf = statusConfig[report.status as keyof typeof statusConfig];
+  if (!typeConf || !sevConf || !statusConf) return null;
 
   return (
     <Card className="hover:shadow-md transition-shadow">
@@ -52,7 +55,7 @@ function ReportCard({ report, onVote }: { report: CommunityReport; onVote: (id: 
         <div className="flex items-center gap-2 flex-wrap">
           <Badge variant="outline" className="text-[10px]">{typeConf.label}</Badge>
           <Badge variant="outline" className="text-[10px]" style={{ borderColor: sevConf.color, color: sevConf.color }}>{sevConf.label}</Badge>
-          <span className="text-[10px] text-muted-foreground ml-auto">{report.createdAt}</span>
+          <span className="text-[10px] text-muted-foreground ml-auto">{new Date(report.created_at).toLocaleDateString("it-IT")}</span>
         </div>
         <div className="flex items-center justify-between pt-1">
           <button onClick={() => onVote(report.id)} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors">
@@ -66,15 +69,15 @@ function ReportCard({ report, onVote }: { report: CommunityReport; onVote: (id: 
   );
 }
 
-function NewReportForm({ onClose, onSubmit }: { onClose: () => void; onSubmit: (r: Partial<CommunityReport>) => void }) {
+function NewReportForm({ onClose, onSubmit }: { onClose: () => void; onSubmit: (r: any) => void }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [type, setType] = useState<CommunityReport["type"]>("discarica");
-  const [severity, setSeverity] = useState<CommunityReport["severity"]>("media");
+  const [type, setType] = useState<string>("discarica");
+  const [severity, setSeverity] = useState<string>("media");
 
   const handleSubmit = () => {
     if (!title || !description) return;
-    onSubmit({ title, description, type, severity, status: "aperta", votes: 1, address: "Posizione attuale", createdAt: new Date().toISOString().split("T")[0] });
+    onSubmit({ title, description, type, severity });
     onClose();
   };
 
@@ -90,7 +93,7 @@ function NewReportForm({ onClose, onSubmit }: { onClose: () => void; onSubmit: (
             <div>
               <label className="text-xs font-semibold text-muted-foreground uppercase mb-1.5 block">Tipo</label>
               <div className="grid grid-cols-3 gap-2">
-                {(Object.entries(reportTypeConfig) as [CommunityReport["type"], typeof reportTypeConfig.discarica][]).map(([key, conf]) => (
+                {Object.entries(reportTypeConfig).map(([key, conf]) => (
                   <button key={key} onClick={() => setType(key)} className={`p-3 rounded-xl border text-center text-xs font-medium transition-all ${type === key ? "border-primary bg-primary/5 text-foreground" : "border-border text-muted-foreground hover:border-primary/30"}`}>
                     <span className="text-lg block mb-1">{conf.icon}</span>
                     {conf.label}
@@ -109,7 +112,7 @@ function NewReportForm({ onClose, onSubmit }: { onClose: () => void; onSubmit: (
             <div>
               <label className="text-xs font-semibold text-muted-foreground uppercase mb-1.5 block">Gravità</label>
               <div className="flex gap-2">
-                {(Object.entries(severityConfig) as [CommunityReport["severity"], typeof severityConfig.bassa][]).map(([key, conf]) => (
+                {Object.entries(severityConfig).map(([key, conf]) => (
                   <button key={key} onClick={() => setSeverity(key)} className={`flex-1 py-2 rounded-lg border text-xs font-medium transition-all ${severity === key ? "border-primary bg-primary/5 text-foreground" : "border-border text-muted-foreground"}`}>
                     {conf.label}
                   </button>
@@ -128,24 +131,34 @@ function NewReportForm({ onClose, onSubmit }: { onClose: () => void; onSubmit: (
 
 export default function QuartiereVivo() {
   const { location, loading: locLoading } = useUserLocation();
-  const [reports, setReports] = useState(getCommunityReports());
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const { reports, loading: reportsLoading, createReport, voteReport } = useCommunityReports();
   const [showForm, setShowForm] = useState(false);
   const [filter, setFilter] = useState<string | null>(null);
 
   const filteredReports = filter ? reports.filter((r) => r.type === filter) : reports;
 
-  const handleVote = (id: string) => {
-    setReports((prev) => prev.map((r) => (r.id === id ? { ...r, votes: r.votes + 1 } : r)));
+  const handleVote = async (id: string) => {
+    if (!user) {
+      toast({ title: "Accedi per votare", variant: "destructive" });
+      return;
+    }
+    await voteReport(id);
   };
 
-  const handleNewReport = (data: Partial<CommunityReport>) => {
-    const newReport: CommunityReport = {
-      id: `r${Date.now()}`,
+  const handleNewReport = async (data: { title: string; description: string; type: string; severity: string }) => {
+    if (!user) {
+      toast({ title: "Accedi per segnalare", variant: "destructive" });
+      return;
+    }
+    await createReport({
+      ...data,
       lat: location.latitude + (Math.random() - 0.5) * 0.01,
       lng: location.longitude + (Math.random() - 0.5) * 0.01,
-      ...(data as CommunityReport),
-    };
-    setReports((prev) => [newReport, ...prev]);
+      address: location.city || "Posizione attuale",
+    });
+    toast({ title: "Segnalazione inviata! 📍" });
   };
 
   const stats = {
@@ -193,7 +206,7 @@ export default function QuartiereVivo() {
         ))}
       </div>
 
-      {/* Real Map */}
+      {/* Map */}
       <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={5}>
         <Card className="overflow-hidden">
           {locLoading ? (
@@ -209,7 +222,7 @@ export default function QuartiereVivo() {
                   markers={filteredReports.map((r) => ({
                     id: r.id,
                     position: [r.lat, r.lng] as [number, number],
-                    icon: createIcon(reportTypeConfig[r.type].icon),
+                    icon: createIcon(reportTypeConfig[r.type as keyof typeof reportTypeConfig]?.icon || "📍"),
                     popupContent: {
                       title: r.title,
                       address: r.address,
@@ -240,13 +253,23 @@ export default function QuartiereVivo() {
       </motion.div>
 
       {/* Reports */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {filteredReports.map((report, i) => (
-          <motion.div key={report.id} initial="hidden" animate="visible" variants={fadeUp} custom={i + 7}>
-            <ReportCard report={report} onVote={handleVote} />
-          </motion.div>
-        ))}
-      </div>
+      {reportsLoading ? (
+        <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 text-primary animate-spin" /></div>
+      ) : filteredReports.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {filteredReports.map((report, i) => (
+            <motion.div key={report.id} initial="hidden" animate="visible" variants={fadeUp} custom={i + 7}>
+              <ReportCard report={report} onVote={handleVote} />
+            </motion.div>
+          ))}
+        </div>
+      ) : (
+        <Card>
+          <CardContent className="p-8 text-center text-muted-foreground">
+            <p>Nessuna segnalazione ancora. Sii il primo a segnalare! 📍</p>
+          </CardContent>
+        </Card>
+      )}
 
       <AnimatePresence>
         {showForm && <NewReportForm onClose={() => setShowForm(false)} onSubmit={handleNewReport} />}

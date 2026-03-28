@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, ArrowRight, Car, UtensilsCrossed, Home, ShoppingBag, BarChart3, Leaf, Sparkles, Loader2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -113,7 +113,26 @@ function ResultsView({ answers, answerLabels }: { answers: Record<string, number
 
   const [aiTips, setAiTips] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
+  const [saved, setSaved] = useState(false);
   const { toast } = useToast();
+
+  // Save to DB
+  useEffect(() => {
+    if (saved) return;
+    import("@/integrations/supabase/client").then(({ supabase }) => {
+      supabase.auth.getUser().then(({ data }) => {
+        if (!data.user) return;
+        supabase.from("carbon_profiles").delete().eq("user_id", data.user.id).then(() => {
+          supabase.from("carbon_profiles").insert({
+            user_id: data.user!.id,
+            transport, diet, home, shopping, total,
+            answers: answerLabels,
+          });
+        });
+        setSaved(true);
+      });
+    });
+  }, [saved, transport, diet, home, shopping, total, answerLabels]);
 
   const categories = [
     { name: "Trasporti", value: transport, color: "bg-blue-500", icon: "🚗", pct: (transport / total) * 100 },

@@ -14,6 +14,7 @@ import { useUserLocation } from "@/hooks/useUserLocation";
 import { fetchAirQuality, fetchWeather, type AirQualityData, type WeatherData } from "@/lib/airQualityApi";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { useCompletedActions, useUserStats } from "@/hooks/useUserData";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -45,11 +46,12 @@ export function Dashboard() {
   const { user } = useAuth();
   const { location } = useUserLocation();
   const { toast } = useToast();
+  const { actions: completedActions, completeAction, uncompleteAction, isCompleted, todayCo2, loading: actionsLoading } = useCompletedActions();
+  const { stats, refetch: refetchStats } = useUserStats();
+
   const [aqData, setAqData] = useState<AirQualityData | null>(null);
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
   const [actions, setActions] = useState<EcoAction[]>(getDailyActions());
-  const [completedIds, setCompletedIds] = useState<string[]>([]);
-  const [co2Saved, setCo2Saved] = useState(0);
   const [loading, setLoading] = useState(true);
   const [feedback, setFeedback] = useState("");
   const [regenerating, setRegenerating] = useState(false);
@@ -66,25 +68,15 @@ export function Dashboard() {
     }).catch(() => setLoading(false));
   }, [location.latitude, location.longitude]);
 
-  const handleToggle = (action: EcoAction) => {
-    if (completedIds.includes(action.id)) {
-      setCompletedIds((p) => p.filter((id) => id !== action.id));
-      setCo2Saved((p) => p - action.co2_grams);
+  const handleToggle = async (action: EcoAction) => {
+    if (isCompleted(action.title)) {
+      await uncompleteAction(action.title);
     } else {
-      setCompletedIds((p) => [...p, action.id]);
-      setCo2Saved((p) => p + action.co2_grams);
+      await completeAction(action);
     }
+    // Refresh stats after a short delay for trigger to complete
+    setTimeout(() => refetchStats(), 500);
   };
-
-  // Save completed actions to localStorage for Profile page
-  useEffect(() => {
-    const completed = actions.filter((a) => completedIds.includes(a.id));
-    localStorage.setItem("eco_completed_actions", JSON.stringify(completed));
-  }, [completedIds, actions]);
-
-  useEffect(() => {
-    if (feedback) localStorage.setItem("eco_last_feedback", feedback);
-  }, [feedback]);
 
   const handleRegenerate = async () => {
     if (!feedback.trim()) {
@@ -116,8 +108,6 @@ export function Dashboard() {
       const data = await resp.json();
       if (data.actions?.length) {
         setActions(data.actions);
-        setCompletedIds([]);
-        setCo2Saved(0);
         setFeedback("");
         setShowFeedback(false);
         toast({ title: "Azioni rigenerate! 🌿", description: "Le nuove azioni sono personalizzate in base al tuo feedback" });
@@ -129,10 +119,11 @@ export function Dashboard() {
     setRegenerating(false);
   };
 
-  const streakDays = 7;
+  const streakDays = stats?.streak_days || 0;
   const dailyGoalKg = 2;
-  const co2SavedKg = co2Saved / 1000;
+  const co2SavedKg = todayCo2 / 1000;
   const goalProgress = Math.min(100, (co2SavedKg / dailyGoalKg) * 100);
+  const completedCount = actions.filter((a) => isCompleted(a.title)).length;
 
   if (loading) {
     return (
@@ -194,7 +185,7 @@ export function Dashboard() {
                 <Progress value={goalProgress} className="h-3" />
               </div>
             ),
-            subtitle: `${completedIds.length}/${actions.length} azioni completate`,
+            subtitle: `${completedCount}/${actions.length} azioni completate`,
             icon: TrendingUp,
           },
         ].map((kpi, i) => (
@@ -222,13 +213,13 @@ export function Dashboard() {
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg">Azioni di Oggi</CardTitle>
                 <span className="text-xs text-muted-foreground bg-accent px-3 py-1 rounded-full">
-                  {completedIds.length}/{actions.length} completate
+                  {completedCount}/{actions.length} completate
                 </span>
               </div>
             </CardHeader>
             <CardContent className="space-y-3">
               {actions.map((action, i) => {
-                const isDone = completedIds.includes(action.id);
+                const isDone = isCompleted(action.title);
                 return (
                   <motion.div
                     key={action.id}
@@ -326,7 +317,7 @@ export function Dashboard() {
                   <p className="text-[10px] text-muted-foreground uppercase">kg CO₂ oggi</p>
                 </div>
                 <div className="bg-card/80 backdrop-blur rounded-lg p-3 text-center">
-                  <p className="text-2xl font-bold text-foreground">{completedIds.length}</p>
+                  <p className="text-2xl font-bold text-foreground">{completedCount}</p>
                   <p className="text-[10px] text-muted-foreground uppercase">azioni fatte</p>
                 </div>
               </div>
