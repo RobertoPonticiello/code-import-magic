@@ -105,14 +105,14 @@ export function Dashboard() {
         {[
           {
             title: "Qualità Aria",
-            content: <AqiIndicator level={envData!.aqi_level} color={envData!.aqi_color} pm25={envData!.aqi_pm25} />,
-            subtitle: envData!.aqi_level,
+            content: aqData ? <AqiIndicator level={aqData.level} color={aqData.color} pm25={aqData.pm25} /> : null,
+            subtitle: aqData?.level || "—",
             icon: Wind,
           },
           {
             title: "Temperatura",
-            content: <p className="text-3xl font-bold text-foreground">{envData!.temperature}°C</p>,
-            subtitle: `Umidità ${envData!.humidity}%`,
+            content: <p className="text-3xl font-bold text-foreground">{weatherData?.temperature ?? "—"}°C</p>,
+            subtitle: `Umidità ${weatherData?.humidity ?? "—"}%`,
             icon: Thermometer,
           },
           {
