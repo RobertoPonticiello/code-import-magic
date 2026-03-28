@@ -52,7 +52,15 @@ export default function Profile() {
   const { stats, loading: statsLoading } = useUserStats();
   const { actions: recentActions, loading: actionsLoading } = useAllCompletedActions();
   const { profile: carbonProfile, history: carbonHistory } = useCarbonProfile();
+  const { group, members } = useGroup();
+  const memberIds = members.map((m) => m.user_id);
+  const { getMemberBalance } = useJackpot(group?.id || null, memberIds);
   const badges = getBadges();
+
+  // Get current user's crowns from group members
+  const userMember = members.find((m) => m.user_id === user?.id);
+  const userCrowns = userMember?.crowns || 0;
+  const userBalance = user ? getMemberBalance(user.id) : { totalWon: 0, totalPaid: 0, net: 0 };
 
   const totalCo2Kg = (stats?.total_co2_grams || 0) / 1000;
   const xp = stats?.xp || 0;
