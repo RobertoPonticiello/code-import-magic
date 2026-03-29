@@ -483,8 +483,8 @@ function HistoryView() {
       {/* Trend mini-chart if 2+ entries */}
       {entries.length >= 2 && (
         <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
-          <CardContent className="p-5 space-y-1">
-            <h3 className="text-base font-bold text-foreground flex items-center gap-2">
+          <CardContent className="p-4 space-y-0">
+            <h3 className="text-base font-bold text-foreground flex items-center gap-2 mb-2">
               <BarChart3 className="w-5 h-5 text-primary" /> Evoluzione
             </h3>
             <div className="flex items-end gap-2 h-40">
