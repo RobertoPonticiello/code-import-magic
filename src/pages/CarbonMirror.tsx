@@ -628,7 +628,7 @@ function HistoryView() {
 }
 
 export default function CarbonMirror() {
-  const [tab, setTab] = useState<"quiz" | "bills">("quiz");
+  const [tab, setTab] = useState<"quiz" | "bills" | "history">("quiz");
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [answerLabels, setAnswerLabels] = useState<Record<string, string>>({});
