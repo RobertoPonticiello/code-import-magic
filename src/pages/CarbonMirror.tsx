@@ -483,23 +483,23 @@ function HistoryView() {
       {/* Trend mini-chart if 2+ entries */}
       {entries.length >= 2 && (
         <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
-          <CardContent className="p-4 space-y-2">
-            <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-              <BarChart3 className="w-4 h-4 text-primary" /> Evoluzione
+          <CardContent className="p-5 space-y-3">
+            <h3 className="text-base font-bold text-foreground flex items-center gap-2">
+              <BarChart3 className="w-5 h-5 text-primary" /> Evoluzione
             </h3>
-            <div className="flex items-end gap-1 h-20">
+            <div className="flex items-end gap-2 h-40">
               {[...entries].reverse().map((e, i, arr) => {
                 const maxVal = Math.max(...arr.map((x: any) => x.total), 1);
                 const pct = (e.total / maxVal) * 100;
                 const isLast = i === arr.length - 1;
                 return (
-                  <div key={e.id} className="flex-1 flex flex-col items-center gap-1">
-                    <span className="text-[9px] font-bold text-foreground">{e.total.toFixed(1)}</span>
+                  <div key={e.id} className="flex-1 flex flex-col items-center gap-1.5">
+                    <span className="text-sm font-bold text-foreground">{e.total.toFixed(1)}</span>
                     <div
                       className={`w-full rounded-t transition-all ${isLast ? "bg-primary" : "bg-primary/30"}`}
                       style={{ height: `${Math.max(pct, 8)}%` }}
                     />
-                    <span className="text-[8px] text-muted-foreground">
+                    <span className="text-xs text-muted-foreground">
                       {new Date(e.created_at).toLocaleDateString("it-IT", { day: "2-digit", month: "short" })}
                     </span>
                   </div>
