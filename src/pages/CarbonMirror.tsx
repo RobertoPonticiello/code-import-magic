@@ -487,19 +487,21 @@ function HistoryView() {
             <h3 className="text-base font-bold text-foreground flex items-center gap-2 mb-2">
               <BarChart3 className="w-5 h-5 text-primary" /> Evoluzione
             </h3>
-            <div className="flex items-end gap-2 h-40">
+            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2 mt-0.5">
               {[...entries].reverse().map((e, i, arr) => {
                 const maxVal = Math.max(...arr.map((x: any) => x.total), 1);
                 const pct = (e.total / maxVal) * 100;
                 const isLast = i === arr.length - 1;
                 return (
-                  <div key={e.id} className="flex-1 flex flex-col items-center gap-1.5">
-                    <span className="text-base font-bold text-foreground">{e.total.toFixed(1)}</span>
-                    <div
-                      className={`w-full rounded-t transition-all ${isLast ? "bg-primary" : "bg-primary/30"}`}
-                      style={{ height: `${Math.max(pct, 8)}%` }}
-                    />
-                    <span className="text-xs text-muted-foreground">
+                  <div key={e.id} className="flex flex-col items-center gap-1">
+                    <span className="text-lg font-bold leading-none text-foreground">{e.total.toFixed(1)}</span>
+                    <div className="h-24 w-full flex items-end">
+                      <div
+                        className={`w-full rounded-t transition-all ${isLast ? "bg-primary" : "bg-primary/30"}`}
+                        style={{ height: `${Math.max(pct, 8)}%` }}
+                      />
+                    </div>
+                    <span className="text-xs text-muted-foreground leading-none">
                       {new Date(e.created_at).toLocaleDateString("it-IT", { day: "2-digit", month: "short" })}
                     </span>
                   </div>
