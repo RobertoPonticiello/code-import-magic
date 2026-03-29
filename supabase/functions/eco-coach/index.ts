@@ -44,7 +44,7 @@ serve(async (req) => {
       supabase.from("carbon_profiles").select("*").eq("user_id", userId).order("created_at", { ascending: false }),
       supabase.from("completed_actions").select("action_title, action_category, co2_grams, completed_at, rating, action_difficulty").eq("user_id", userId).order("completed_at", { ascending: false }).limit(50),
       supabase.from("energy_bills").select("bill_type, provider, period_start, period_end, kwh, gas_smc, cost_euros, created_at").eq("user_id", userId).order("created_at", { ascending: false }).limit(10),
-      supabase.from("community_reports").select("type, title, severity, created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(10),
+      supabase.from("community_reports").select("type, title, severity, created_at").eq("user_id", userId).order("created_at", { ascending: false }).limit(10),
     ]);
 
     const profile = profileRes.data;
