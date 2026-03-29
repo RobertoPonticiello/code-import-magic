@@ -55,7 +55,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               <Leaf className="w-5 h-5 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-foreground tracking-tight">EcoSignal</h1>
+              <h1 className="text-lg font-bold text-foreground tracking-tight">GreenClick</h1>
               <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-widest">Dai dati al gesto</p>
             </div>
           </Link>
@@ -110,12 +110,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               </button>
             </div>
           )}
-          <div className="bg-accent rounded-xl p-4">
-            <p className="text-xs font-semibold text-accent-foreground mb-1">Hackathon 2026</p>
-            <p className="text-[10px] text-muted-foreground leading-relaxed">
-              Challenge Engineering — EcoSignal: dai dati al gesto
-            </p>
-          </div>
         </div>
       </aside>
 
@@ -131,7 +125,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           </button>
           <div className="flex items-center gap-2 flex-1">
             <Leaf className="w-5 h-5 text-primary" />
-            <span className="font-bold text-foreground">EcoSignal</span>
+            <span className="font-bold text-foreground">GreenClick</span>
           </div>
           <NotificationCenter />
         </header>

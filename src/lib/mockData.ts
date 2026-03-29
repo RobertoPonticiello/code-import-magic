@@ -1,4 +1,4 @@
-// EcoSignal - Mock data layer (replaces localhost:8000 backend)
+// GreenClick - Mock data layer (replaces localhost:8000 backend)
 // In production, these would be API calls
 
 export interface EnvData {
