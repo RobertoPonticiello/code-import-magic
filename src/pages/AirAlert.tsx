@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import { Wind, Shield, Thermometer, Droplets, Activity, MapPin, Loader2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Wind, Shield, Thermometer, Droplets, Activity, MapPin, Loader2, Sparkles, Info, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useUserLocation } from "@/hooks/useUserLocation";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import {
   fetchAirQuality,
   fetchWeather,
@@ -17,22 +20,29 @@ const fadeUp = {
   visible: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.1 } }),
 };
 
-const levelConfig: Record<string, { bg: string; text: string; border: string; advice: string[] }> = {
-  Ottima: {
-    bg: "bg-emerald-500/10", text: "text-emerald-600 dark:text-emerald-400", border: "border-emerald-500/20",
-    advice: ["🏃 Giornata perfetta per attività all'aperto", "🪟 Apri le finestre e arieggia bene la casa", "🌳 Approfitta per una passeggiata al parco"],
+const levelConfig: Record<string, { bg: string; text: string; border: string }> = {
+  Ottima: { bg: "bg-emerald-500/10", text: "text-emerald-600 dark:text-emerald-400", border: "border-emerald-500/20" },
+  Buona: { bg: "bg-amber-500/10", text: "text-amber-600 dark:text-amber-400", border: "border-amber-500/20" },
+  Moderata: { bg: "bg-orange-500/10", text: "text-orange-600 dark:text-orange-400", border: "border-orange-500/20" },
+  Scarsa: { bg: "bg-red-500/10", text: "text-red-600 dark:text-red-400", border: "border-red-500/20" },
+};
+
+const pollutantInfo: Record<string, { health: string; protect: string }> = {
+  "PM2.5": {
+    health: "Le polveri sottili PM2.5 penetrano in profondità nei polmoni e nel sangue, causando infiammazioni, problemi cardiovascolari, asma, e aumentando il rischio di tumori polmonari. Sono particolarmente pericolose per bambini, anziani e chi soffre di patologie respiratorie.",
+    protect: "Usa mascherine FFP2 nei giorni critici, evita attività fisica intensa all'aperto, usa purificatori d'aria in casa, tieni chiuse le finestre nelle ore di traffico intenso e non bruciare legna o rifiuti.",
   },
-  Buona: {
-    bg: "bg-amber-500/10", text: "text-amber-600 dark:text-amber-400", border: "border-amber-500/20",
-    advice: ["✅ Attività all'aperto consentite", "👶 Chi è sensibile limiti sforzi intensi", "🏠 Arieggia nelle ore meno trafficate"],
+  "PM10": {
+    health: "Le polveri inalabili PM10 si depositano nelle vie respiratorie superiori causando irritazione, tosse, bronchiti e peggioramento di asma e allergie. L'esposizione prolungata aumenta il rischio di malattie polmonari croniche.",
+    protect: "Evita di camminare lungo strade trafficate, preferisci percorsi in aree verdi, arieggia la casa nelle ore meno inquinate (prima mattina o tarda sera), e mantieni puliti i filtri dell'aria condizionata.",
   },
-  Moderata: {
-    bg: "bg-orange-500/10", text: "text-orange-600 dark:text-orange-400", border: "border-orange-500/20",
-    advice: ["⚠️ Evita attività sportive all'aperto prolungate", "😷 Chi soffre d'asma usi la mascherina FFP2", "🪟 Tieni chiuse le finestre nelle ore di punta", "🚗 Evita di usare l'auto per ridurre le emissioni"],
+  "O3": {
+    health: "L'ozono troposferico irrita le vie respiratorie, riduce la funzionalità polmonare, provoca dolore toracico, tosse e difficoltà respiratorie. Si forma nelle giornate calde e soleggiate dal traffico e industrie.",
+    protect: "Evita attività all'aperto nelle ore più calde (12-17), resta in ambienti climatizzati, bevi molta acqua. L'ozono non penetra facilmente in casa, quindi tenere chiuse le finestre nelle ore di picco è efficace.",
   },
-  Scarsa: {
-    bg: "bg-red-500/10", text: "text-red-600 dark:text-red-400", border: "border-red-500/20",
-    advice: ["🚨 Resta in casa il più possibile", "😷 Mascherina FFP2 obbligatoria all'aperto", "🏋️ Niente sport all'aperto", "👴 Anziani e bambini: massima cautela"],
+  "NO2": {
+    health: "Il biossido di azoto infiamma le vie aeree, riduce le difese immunitarie polmonari, peggiora l'asma e aumenta la suscettibilità alle infezioni respiratorie. Proviene principalmente dal traffico veicolare.",
+    protect: "Evita zone ad alto traffico, usa trasporto pubblico o bicicletta su percorsi alternativi, tieni chiusi i finestrini dell'auto nel traffico, e sostieni politiche per la mobilità sostenibile.",
   },
 };
 
@@ -93,12 +103,40 @@ function ForecastChart({ forecast }: { forecast: AirQualityHourly[] }) {
   );
 }
 
+function PollutantInfoPanel({ pollutantKey, onClose }: { pollutantKey: string; onClose: () => void }) {
+  const info = pollutantInfo[pollutantKey];
+  if (!info) return null;
+  return (
+    <motion.div
+      initial={{ opacity: 0, height: 0 }}
+      animate={{ opacity: 1, height: "auto" }}
+      exit={{ opacity: 0, height: 0 }}
+      className="overflow-hidden"
+    >
+      <div className="mt-2 p-3 rounded-lg bg-accent/50 border border-border text-xs space-y-2">
+        <div className="flex justify-between items-start">
+          <p className="font-bold text-foreground">⚠️ Rischi per la salute</p>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+        <p className="text-muted-foreground leading-relaxed">{info.health}</p>
+        <p className="font-bold text-foreground">🛡️ Come proteggersi</p>
+        <p className="text-muted-foreground leading-relaxed">{info.protect}</p>
+      </div>
+    </motion.div>
+  );
+}
+
 export default function AirAlert() {
   const { location } = useUserLocation();
   const [aq, setAq] = useState<AirQualityData | null>(null);
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [forecast, setForecast] = useState<AirQualityHourly[]>([]);
   const [loading, setLoading] = useState(true);
+  const [aiTips, setAiTips] = useState<string[]>([]);
+  const [loadingTips, setLoadingTips] = useState(false);
+  const [expandedPollutant, setExpandedPollutant] = useState<string | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -119,6 +157,36 @@ export default function AirAlert() {
     load();
   }, [location.latitude, location.longitude]);
 
+  const generateAiTips = async () => {
+    if (!aq) return;
+    setLoadingTips(true);
+    setAiTips([]);
+    try {
+      const { data, error } = await supabase.functions.invoke("air-quality-tips", {
+        body: {
+          airData: {
+            european_aqi: aq.european_aqi,
+            level: aq.level,
+            pm25: aq.pm25,
+            pm10: aq.pm10,
+            o3: aq.o3,
+            no2: aq.no2,
+          },
+          weatherData: weather
+            ? { temperature: weather.temperature, humidity: weather.humidity, wind_speed: weather.wind_speed }
+            : null,
+          city: location.city || "la mia città",
+        },
+      });
+      if (error) throw error;
+      setAiTips(data.tips || []);
+    } catch (e: any) {
+      console.error("AI tips error:", e);
+      toast.error("Errore nella generazione dei consigli AI");
+    }
+    setLoadingTips(false);
+  };
+
   if (loading || !aq || !weather) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -128,6 +196,13 @@ export default function AirAlert() {
   }
 
   const config = levelConfig[aq.level] || levelConfig.Buona;
+
+  const pollutants = [
+    { name: "Polveri sottili (PM2.5)", key: "PM2.5", value: Math.round(aq.pm25 * 10) / 10, unit: "µg/m³", limit: 25, icon: "🫁" },
+    { name: "Polveri inalabili (PM10)", key: "PM10", value: Math.round(aq.pm10 * 10) / 10, unit: "µg/m³", limit: 50, icon: "💨" },
+    { name: "Ozono", key: "O3", value: Math.round(aq.o3 * 10) / 10, unit: "µg/m³", limit: 120, icon: "☀️" },
+    { name: "Biossido di azoto", key: "NO2", value: Math.round(aq.no2 * 10) / 10, unit: "µg/m³", limit: 40, icon: "🏭" },
+  ];
 
   return (
     <div className="p-6 lg:p-8 max-w-5xl mx-auto space-y-8">
@@ -167,20 +242,60 @@ export default function AirAlert() {
           </Card>
         </motion.div>
 
+        {/* AI Tips Section */}
         <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={2}>
-          <Card>
+          <Card className="h-full flex flex-col">
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
-                <Shield className="w-5 h-5 text-primary" />
-                Consigli per oggi
+                <Sparkles className="w-5 h-5 text-primary" />
+                Consigli AI personalizzati
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              {config.advice.map((tip, i) => (
-                <motion.div key={i} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 + i * 0.1 }} className="p-3 bg-accent rounded-lg text-sm text-foreground">
-                  {tip}
-                </motion.div>
-              ))}
+            <CardContent className="flex-1 flex flex-col">
+              {aiTips.length === 0 && !loadingTips && (
+                <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center">
+                  <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Sparkles className="w-8 h-8 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-foreground">Consigli basati sull'aria di oggi</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      L'AI analizzerà i dati in tempo reale e ti darà suggerimenti personalizzati
+                    </p>
+                  </div>
+                  <Button onClick={generateAiTips} className="gap-2">
+                    <Sparkles className="w-4 h-4" />
+                    Genera consigli
+                  </Button>
+                </div>
+              )}
+
+              {loadingTips && (
+                <div className="flex-1 flex flex-col items-center justify-center gap-3">
+                  <Loader2 className="w-6 h-6 text-primary animate-spin" />
+                  <p className="text-sm text-muted-foreground">Analisi dei dati in corso…</p>
+                </div>
+              )}
+
+              {aiTips.length > 0 && !loadingTips && (
+                <div className="space-y-2">
+                  {aiTips.map((tip, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, x: 10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.1 }}
+                      className="p-3 bg-accent rounded-lg text-sm text-foreground"
+                    >
+                      {tip}
+                    </motion.div>
+                  ))}
+                  <Button variant="outline" size="sm" onClick={generateAiTips} className="w-full mt-3 gap-2">
+                    <Sparkles className="w-3.5 h-3.5" />
+                    Rigenera consigli
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         </motion.div>
@@ -216,28 +331,36 @@ export default function AirAlert() {
         </motion.div>
       )}
 
-      {/* Pollutants - REAL DATA */}
+      {/* Pollutants with info */}
       <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={4}>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          {[
-            { name: "Polveri sottili (PM2.5)", value: Math.round(aq.pm25 * 10) / 10, unit: "µg/m³", limit: 25, icon: "🫁" },
-            { name: "Polveri inalabili (PM10)", value: Math.round(aq.pm10 * 10) / 10, unit: "µg/m³", limit: 50, icon: "💨" },
-            { name: "Ozono", value: Math.round(aq.o3 * 10) / 10, unit: "µg/m³", limit: 120, icon: "☀️" },
-            { name: "Biossido di azoto", value: Math.round(aq.no2 * 10) / 10, unit: "µg/m³", limit: 40, icon: "🏭" },
-          ].map((p) => {
+          {pollutants.map((p) => {
             const pct = Math.min(100, (p.value / p.limit) * 100);
             const isOk = pct < 80;
+            const isExpanded = expandedPollutant === p.key;
             return (
               <Card key={p.name}>
                 <CardContent className="p-4 text-center space-y-2">
                   <p className="text-xl">{p.icon}</p>
-                  <p className="text-xs font-bold text-muted-foreground uppercase">{p.name}</p>
+                  <div className="flex items-center justify-center gap-1">
+                    <p className="text-xs font-bold text-muted-foreground uppercase">{p.name}</p>
+                    <button
+                      onClick={() => setExpandedPollutant(isExpanded ? null : p.key)}
+                      className="text-primary hover:text-primary/80 transition-colors"
+                      title="Info su questo inquinante"
+                    >
+                      <Info className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                   <p className={`text-2xl font-bold ${isOk ? "text-foreground" : "text-destructive"}`}>{p.value}</p>
                   <p className="text-[10px] text-muted-foreground">{p.unit}</p>
                   <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                     <div className={`h-full rounded-full transition-all ${isOk ? "bg-primary" : "bg-destructive"}`} style={{ width: `${pct}%` }} />
                   </div>
                   <p className="text-[9px] text-muted-foreground">Limite OMS: {p.limit} {p.unit}</p>
+                  <AnimatePresence>
+                    {isExpanded && <PollutantInfoPanel pollutantKey={p.key} onClose={() => setExpandedPollutant(null)} />}
+                  </AnimatePresence>
                 </CardContent>
               </Card>
             );
