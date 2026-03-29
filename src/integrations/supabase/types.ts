@@ -185,6 +185,51 @@ export type Database = {
         }
         Relationships: []
       }
+      energy_bills: {
+        Row: {
+          bill_type: string
+          cost_euros: number | null
+          created_at: string
+          gas_smc: number | null
+          id: string
+          image_url: string | null
+          kwh: number | null
+          period_end: string | null
+          period_start: string | null
+          provider: string | null
+          raw_extraction: Json | null
+          user_id: string
+        }
+        Insert: {
+          bill_type?: string
+          cost_euros?: number | null
+          created_at?: string
+          gas_smc?: number | null
+          id?: string
+          image_url?: string | null
+          kwh?: number | null
+          period_end?: string | null
+          period_start?: string | null
+          provider?: string | null
+          raw_extraction?: Json | null
+          user_id: string
+        }
+        Update: {
+          bill_type?: string
+          cost_euros?: number | null
+          created_at?: string
+          gas_smc?: number | null
+          id?: string
+          image_url?: string | null
+          kwh?: number | null
+          period_end?: string | null
+          period_start?: string | null
+          provider?: string | null
+          raw_extraction?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       group_members: {
         Row: {
           crowns: number
