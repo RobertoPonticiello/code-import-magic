@@ -10,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserStats, useAllCompletedActions, useCarbonProfile } from "@/hooks/useUserData";
+import { useUserLocation } from "@/hooks/useUserLocation";
 import { useGroup } from "@/hooks/useGroup";
 import { useJackpot } from "@/hooks/useJackpot";
 import { getBadges } from "@/lib/mockData";
@@ -49,6 +50,7 @@ function getLevel(xp: number) {
 
 export default function Profile() {
   const { user } = useAuth();
+  const { location } = useUserLocation();
   const { stats, loading: statsLoading } = useUserStats();
   const { actions: recentActions, loading: actionsLoading } = useAllCompletedActions();
   const { profile: carbonProfile, history: carbonHistory } = useCarbonProfile();
@@ -73,7 +75,6 @@ export default function Profile() {
     totalActions: stats?.total_actions || 0,
     totalCo2Kg,
     streakDays: stats?.streak_days || 0,
-    reports: stats?.total_reports || 0,
     treesEquiv: (totalCo2Kg / 21).toFixed(1),
     kmSaved: (totalCo2Kg * 5.5).toFixed(0),
     eurosSaved: totalEurosSaved,
@@ -85,12 +86,10 @@ export default function Profile() {
   const europeanAvg = 7.5;
 
   const unlockedBadges = badges.filter((b) => {
-    // Dynamically unlock badges based on real stats
     if (b.id === "b1") return derivedStats.totalActions >= 1;
     if (b.id === "b2") return derivedStats.totalActions >= 10;
     if (b.id === "b3") return derivedStats.streakDays >= 7;
     if (b.id === "b4") return totalCo2Kg >= 5;
-    if (b.id === "b5") return derivedStats.reports >= 3;
     return false;
   });
   const lockedBadges = badges.filter((b) => !unlockedBadges.some((u) => u.id === b.id));
@@ -133,7 +132,7 @@ export default function Profile() {
                   <h1 className="text-2xl font-bold text-foreground">{displayName}</h1>
                   <div className="flex items-center justify-center sm:justify-start gap-2 mt-1">
                     <MapPin className="w-3.5 h-3.5 text-muted-foreground" />
-                    <span className="text-sm text-muted-foreground">Roma, Italia</span>
+                    <span className="text-sm text-muted-foreground">{location.city || "Italia"}</span>
                   </div>
                 </div>
                 <div className="space-y-1.5 max-w-sm">
@@ -214,7 +213,7 @@ export default function Profile() {
                             <cat.icon className={`w-4 h-4 ${cat.color}`} />
                             <span className="font-medium text-foreground">{cat.label}</span>
                           </div>
-                          <span className="text-muted-foreground">{cat.value.toFixed(1)}t CO₂/anno</span>
+                          <span className="text-muted-foreground">{cat.value.toFixed(1)} kg CO₂/sett</span>
                         </div>
                         <div className="h-2 bg-accent rounded-full overflow-hidden">
                           <motion.div
@@ -228,8 +227,8 @@ export default function Profile() {
                     );
                   })}
                   <div className="pt-2 border-t border-border flex justify-between text-xs text-muted-foreground">
-                    <span>Totale: <strong className="text-foreground">{cp.total.toFixed(1)}t</strong>/anno</span>
-                    <span>Media EU: {europeanAvg}t</span>
+                    <span>Totale: <strong className="text-foreground">{cp.total.toFixed(1)} kg</strong>/sett</span>
+                    <span>Media EU: {europeanAvg} kg/sett</span>
                   </div>
                 </div>
               ) : (
