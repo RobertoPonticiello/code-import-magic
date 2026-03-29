@@ -102,8 +102,8 @@ AZIONI ULTIMA SETTIMANA: ${lastWeekActions.length} completate
 BOLLETTE ENERGETICHE:
 ${bills.length > 0 ? bills.map((b: any) => `- ${b.bill_type} ${b.provider || ""}: ${b.period_start || "?"} → ${b.period_end || "?"}, ${b.kwh ? b.kwh + " kWh" : ""}${b.gas_smc ? ", " + b.gas_smc + " Smc" : ""}, €${b.cost_euros || "?"}`).join("\n") : "Nessuna bolletta caricata"}
 
-SEGNALAZIONI AMBIENTALI:
-${reports.length > 0 ? reports.map((r: any) => `- [${r.created_at?.slice(0, 10)}] ${r.title} (${r.type}, ${r.severity})`).join("\n") : "Nessuna segnalazione"}
+
+
 
 REGOLE:
 1. Rispondi SEMPRE in italiano
