@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   LayoutDashboard, Leaf, Wind, Trophy, Footprints, User, Users,
-  Menu, X, ChevronRight, LogOut, Sun, Moon, BookOpen, ShoppingBag
+  Menu, X, ChevronRight, LogOut, Sun, Moon, BookOpen, ShoppingBag, Bot
 } from "lucide-react";
 import useTheme from "@/hooks/use-theme";
 import { NotificationCenter } from "@/components/NotificationCenter";
@@ -17,6 +17,7 @@ const navItems = [
   { path: "/action-history", label: "Diario Azioni", icon: BookOpen, desc: "Storico giornaliero" },
   { path: "/group", label: "Il Mio Gruppo", icon: Users, desc: "Sfida i tuoi amici" },
   { path: "/eco-shop", label: "EcoShop", icon: ShoppingBag, desc: "Brand eco in sconto" },
+  { path: "/eco-coach", label: "EcoCoach", icon: Bot, desc: "Assistente AI" },
   { path: "/profile", label: "Profilo Eco", icon: User, desc: "Il tuo profilo" },
 ];
 

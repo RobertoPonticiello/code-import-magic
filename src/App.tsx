@@ -12,7 +12,7 @@ import ImpactStreak from "./pages/ImpactStreak";
 import ActionHistory from "./pages/ActionHistory";
 import Group from "./pages/Group";
 import EcoShop from "./pages/EcoShop";
-
+import EcoCoach from "./pages/EcoCoach";
 import Profile from "./pages/Profile";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
@@ -56,7 +56,7 @@ function AppRoutes() {
       <Route path="/action-history" element={<ProtectedRoute><AppLayout><ActionHistory /></AppLayout></ProtectedRoute>} />
       <Route path="/group" element={<ProtectedRoute><AppLayout><Group /></AppLayout></ProtectedRoute>} />
       <Route path="/eco-shop" element={<ProtectedRoute><AppLayout><EcoShop /></AppLayout></ProtectedRoute>} />
-      
+      <Route path="/eco-coach" element={<ProtectedRoute><AppLayout><EcoCoach /></AppLayout></ProtectedRoute>} />
       <Route path="/profile" element={<ProtectedRoute><AppLayout><Profile /></AppLayout></ProtectedRoute>} />
       <Route path="*" element={<NotFound />} />
     </Routes>
