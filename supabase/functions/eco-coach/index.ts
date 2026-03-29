@@ -38,13 +38,12 @@ serve(async (req) => {
     const { messages } = await req.json();
 
     // Fetch all user context in parallel
-    const [profileRes, statsRes, carbonRes, actionsRes, billsRes, reportsRes] = await Promise.all([
+    const [profileRes, statsRes, carbonRes, actionsRes, billsRes] = await Promise.all([
       supabase.from("profiles").select("*").eq("user_id", userId).maybeSingle(),
       supabase.from("user_stats").select("*").eq("user_id", userId).maybeSingle(),
       supabase.from("carbon_profiles").select("*").eq("user_id", userId).order("created_at", { ascending: false }),
       supabase.from("completed_actions").select("action_title, action_category, co2_grams, completed_at, rating, action_difficulty").eq("user_id", userId).order("completed_at", { ascending: false }).limit(50),
       supabase.from("energy_bills").select("bill_type, provider, period_start, period_end, kwh, gas_smc, cost_euros, created_at").eq("user_id", userId).order("created_at", { ascending: false }).limit(10),
-      supabase.from("community_reports").select("type, title, severity, created_at").eq("user_id", userId).order("created_at", { ascending: false }).limit(10),
     ]);
 
     const profile = profileRes.data;
@@ -54,7 +53,6 @@ serve(async (req) => {
     const carbonHistory = carbonProfiles.slice(0, 5);
     const actions = actionsRes.data || [];
     const bills = billsRes.data || [];
-    const reports = reportsRes.data || [];
 
     // Analyze patterns
     const categoryCount: Record<string, number> = {};
@@ -79,7 +77,7 @@ CONTESTO UTENTE COMPLETO:
 - XP totali: ${stats?.xp || 0}, Livello streak: ${stats?.streak_days || 0} giorni
 - Azioni totali completate: ${stats?.total_actions || 0}
 - CO₂ totale risparmiata: ${(stats?.total_co2_grams || 0)}g (${((stats?.total_co2_grams || 0) / 1000).toFixed(1)}kg)
-- Segnalazioni ambientali fatte: ${stats?.total_reports || 0}
+
 
 PROFILO CARBONIO (ultima compilazione):
 ${latestCarbon ? `- Trasporti: ${latestCarbon.transport} kg CO₂/sett
@@ -104,8 +102,8 @@ AZIONI ULTIMA SETTIMANA: ${lastWeekActions.length} completate
 BOLLETTE ENERGETICHE:
 ${bills.length > 0 ? bills.map((b: any) => `- ${b.bill_type} ${b.provider || ""}: ${b.period_start || "?"} → ${b.period_end || "?"}, ${b.kwh ? b.kwh + " kWh" : ""}${b.gas_smc ? ", " + b.gas_smc + " Smc" : ""}, €${b.cost_euros || "?"}`).join("\n") : "Nessuna bolletta caricata"}
 
-SEGNALAZIONI AMBIENTALI:
-${reports.length > 0 ? reports.map((r: any) => `- [${r.created_at?.slice(0, 10)}] ${r.title} (${r.type}, ${r.severity})`).join("\n") : "Nessuna segnalazione"}
+
+
 
 REGOLE:
 1. Rispondi SEMPRE in italiano
