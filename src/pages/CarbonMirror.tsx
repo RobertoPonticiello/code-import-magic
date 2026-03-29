@@ -429,6 +429,204 @@ function ResultsView({ answers, answerLabels }: { answers: Record<string, number
   );
 }
 
+function HistoryView() {
+  const [entries, setEntries] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      const { supabase } = await import("@/integrations/supabase/client");
+      const { data: authData } = await supabase.auth.getUser();
+      if (!authData.user) { setLoading(false); return; }
+      const { data } = await supabase
+        .from("carbon_profiles")
+        .select("*")
+        .eq("user_id", authData.user.id)
+        .order("created_at", { ascending: false });
+      setEntries(data || []);
+      setLoading(false);
+    })();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <Loader2 className="w-6 h-6 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (entries.length === 0) {
+    return (
+      <Card>
+        <CardContent className="p-8 text-center space-y-3">
+          <History className="w-12 h-12 mx-auto text-muted-foreground/40" />
+          <h3 className="font-semibold text-foreground">Nessun questionario completato</h3>
+          <p className="text-sm text-muted-foreground">Completa il questionario CO₂ per vedere il tuo storico qui.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const categoryColors: Record<string, string> = {
+    Trasporti: "bg-blue-500",
+    Alimentazione: "bg-amber-500",
+    Casa: "bg-emerald-500",
+    Consumi: "bg-purple-500",
+  };
+
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
+      <p className="text-sm text-muted-foreground">{entries.length} questionari{entries.length === 1 ? "o" : ""} completat{entries.length === 1 ? "o" : "i"}</p>
+
+      {/* Trend mini-chart if 2+ entries */}
+      {entries.length >= 2 && (
+        <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
+          <CardContent className="p-4 space-y-2">
+            <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+              <BarChart3 className="w-4 h-4 text-primary" /> Evoluzione
+            </h3>
+            <div className="flex items-end gap-1 h-20">
+              {[...entries].reverse().map((e, i, arr) => {
+                const maxVal = Math.max(...arr.map((x: any) => x.total), 1);
+                const pct = (e.total / maxVal) * 100;
+                const isLast = i === arr.length - 1;
+                return (
+                  <div key={e.id} className="flex-1 flex flex-col items-center gap-1">
+                    <span className="text-[9px] font-bold text-foreground">{e.total.toFixed(1)}</span>
+                    <div
+                      className={`w-full rounded-t transition-all ${isLast ? "bg-primary" : "bg-primary/30"}`}
+                      style={{ height: `${Math.max(pct, 8)}%` }}
+                    />
+                    <span className="text-[8px] text-muted-foreground">
+                      {new Date(e.created_at).toLocaleDateString("it-IT", { day: "2-digit", month: "short" })}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+            {(() => {
+              const sorted = [...entries].reverse();
+              const first = sorted[0]?.total ?? 0;
+              const last = sorted[sorted.length - 1]?.total ?? 0;
+              const diff = last - first;
+              if (Math.abs(diff) < 0.05) return null;
+              return (
+                <p className={`text-xs font-medium text-center ${diff < 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}`}>
+                  {diff < 0 ? "📉" : "📈"} {diff > 0 ? "+" : ""}{diff.toFixed(1)} kg CO₂/sett dal primo test
+                </p>
+              );
+            })()}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Entry list */}
+      {entries.map((entry, idx) => {
+        const isExpanded = expandedId === entry.id;
+        const date = new Date(entry.created_at);
+        const cats = [
+          { name: "Trasporti", value: entry.transport, icon: "🚗" },
+          { name: "Alimentazione", value: entry.diet, icon: "🍽️" },
+          { name: "Casa", value: entry.home, icon: "🏠" },
+          { name: "Consumi", value: entry.shopping, icon: "🛍️" },
+        ];
+        const answers = (entry.answers as Record<string, string>) || {};
+        const prevEntry = entries[idx + 1];
+        const diff = prevEntry ? entry.total - prevEntry.total : null;
+
+        return (
+          <Card key={entry.id} className="overflow-hidden">
+            <button
+              onClick={() => setExpandedId(isExpanded ? null : entry.id)}
+              className="w-full p-4 flex items-center justify-between text-left hover:bg-accent/50 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                  <Calendar className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <p className="font-semibold text-foreground text-sm">
+                    {date.toLocaleDateString("it-IT", { day: "numeric", month: "long", year: "numeric" })}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {date.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" })}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="text-right">
+                  <p className="font-bold text-foreground">{entry.total.toFixed(1)} <span className="text-xs font-normal text-muted-foreground">kg</span></p>
+                  {diff !== null && Math.abs(diff) >= 0.05 && (
+                    <p className={`text-[10px] font-medium ${diff < 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}`}>
+                      {diff > 0 ? "+" : ""}{diff.toFixed(1)} vs prec.
+                    </p>
+                  )}
+                </div>
+                {isExpanded ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+              </div>
+            </button>
+
+            <AnimatePresence>
+              {isExpanded && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="overflow-hidden"
+                >
+                  <div className="px-4 pb-4 space-y-4 border-t border-border pt-4">
+                    {/* Category breakdown */}
+                    <div className="space-y-2">
+                      {cats.map((cat) => {
+                        const pct = entry.total > 0 ? (cat.value / entry.total) * 100 : 0;
+                        return (
+                          <div key={cat.name} className="space-y-1">
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="flex items-center gap-1.5">
+                                <span>{cat.icon}</span>
+                                <span className="font-medium text-foreground">{cat.name}</span>
+                              </span>
+                              <span className="font-bold text-foreground">{cat.value.toFixed(1)} kg</span>
+                            </div>
+                            <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                              <div className={`h-full rounded-full ${categoryColors[cat.name] || "bg-primary"}`} style={{ width: `${pct}%` }} />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Answer details */}
+                    {Object.keys(answers).length > 0 && (
+                      <div className="space-y-1.5">
+                        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Le tue risposte</h4>
+                        <div className="grid gap-1">
+                          {Object.entries(answers).map(([key, val]) => {
+                            const q = questions.find((q) => q.id === key);
+                            return (
+                              <div key={key} className="flex items-center justify-between text-xs py-1 px-2 rounded bg-muted/50">
+                                <span className="text-muted-foreground truncate mr-2">{q?.question || key}</span>
+                                <span className="font-medium text-foreground shrink-0">{String(val)}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </Card>
+        );
+      })}
+    </motion.div>
+  );
+}
+
 export default function CarbonMirror() {
   const [tab, setTab] = useState<"quiz" | "bills">("quiz");
   const [step, setStep] = useState(0);
