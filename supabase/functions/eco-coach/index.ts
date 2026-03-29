@@ -38,13 +38,12 @@ serve(async (req) => {
     const { messages } = await req.json();
 
     // Fetch all user context in parallel
-    const [profileRes, statsRes, carbonRes, actionsRes, billsRes, reportsRes] = await Promise.all([
+    const [profileRes, statsRes, carbonRes, actionsRes, billsRes] = await Promise.all([
       supabase.from("profiles").select("*").eq("user_id", userId).maybeSingle(),
       supabase.from("user_stats").select("*").eq("user_id", userId).maybeSingle(),
       supabase.from("carbon_profiles").select("*").eq("user_id", userId).order("created_at", { ascending: false }),
       supabase.from("completed_actions").select("action_title, action_category, co2_grams, completed_at, rating, action_difficulty").eq("user_id", userId).order("completed_at", { ascending: false }).limit(50),
       supabase.from("energy_bills").select("bill_type, provider, period_start, period_end, kwh, gas_smc, cost_euros, created_at").eq("user_id", userId).order("created_at", { ascending: false }).limit(10),
-      ]);
     ]);
 
     const profile = profileRes.data;
@@ -54,7 +53,6 @@ serve(async (req) => {
     const carbonHistory = carbonProfiles.slice(0, 5);
     const actions = actionsRes.data || [];
     const bills = billsRes.data || [];
-    const reports = reportsRes.data || [];
 
     // Analyze patterns
     const categoryCount: Record<string, number> = {};
