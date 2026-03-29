@@ -129,7 +129,7 @@ export default function BillScanner() {
   };
 
   const deleteBill = async (id: string) => {
-    const { error } = await supabase.from("energy_bills").delete().eq("id", id);
+    const { error } = await (supabase as any).from("energy_bills").delete().eq("id", id);
     if (!error) {
       setBills((prev) => prev.filter((b) => b.id !== id));
       toast({ title: "Bolletta eliminata" });
