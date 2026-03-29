@@ -102,7 +102,7 @@ export default function BillScanner() {
 
       // Save to DB
       const billData = result.data as BillData;
-      const { error } = await supabase.from("energy_bills").insert({
+      const { error } = await (supabase as any).from("energy_bills").insert({
         user_id: user.id,
         bill_type: billData.bill_type || "electricity",
         provider: billData.provider,
@@ -111,7 +111,7 @@ export default function BillScanner() {
         kwh: billData.kwh,
         cost_euros: billData.cost_euros,
         gas_smc: billData.gas_smc,
-        raw_extraction: billData as unknown as Record<string, unknown>,
+        raw_extraction: billData,
       });
 
       if (error) {
