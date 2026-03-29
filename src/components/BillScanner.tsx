@@ -4,7 +4,7 @@ import { Upload, Loader2, Zap, Flame, Trash2, TrendingDown, TrendingUp, FileText
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
 interface BillData {
