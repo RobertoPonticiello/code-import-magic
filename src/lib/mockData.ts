@@ -160,7 +160,6 @@ export function getBadges(): Badge[] {
     { id: "b2", name: "Eco Warrior", description: "Completa 10 azioni", icon: "⚔️", unlocked: true, unlockedAt: "2026-03-27", requirement: "10 azioni" },
     { id: "b3", name: "Streak Master", description: "Mantieni una streak di 7 giorni", icon: "🔥", unlocked: true, unlockedAt: "2026-03-28", requirement: "7 giorni streak" },
     { id: "b4", name: "Carbon Saver", description: "Risparmia 5kg di CO₂", icon: "💎", unlocked: false, requirement: "5kg CO₂" },
-    
     { id: "b6", name: "Influencer Verde", description: "Ispira 5 amici a unirsi", icon: "🌍", unlocked: false, requirement: "5 inviti" },
     { id: "b7", name: "Zero Waste Hero", description: "7 giorni senza rifiuti indifferenziati", icon: "♻️", unlocked: false, requirement: "7 giorni zero waste" },
     { id: "b8", name: "Leggenda Eco", description: "Completa 100 azioni", icon: "👑", unlocked: false, requirement: "100 azioni" },
