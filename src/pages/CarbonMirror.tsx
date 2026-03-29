@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, ArrowRight, Car, UtensilsCrossed, Home, ShoppingBag, BarChart3, Leaf, Sparkles, Loader2, Euro, Plane, Droplets, FileText } from "lucide-react";
+import { ArrowLeft, ArrowRight, Car, UtensilsCrossed, Home, ShoppingBag, BarChart3, Leaf, Sparkles, Loader2, Euro, Plane, Droplets, FileText, History, ChevronDown, ChevronUp, Calendar } from "lucide-react";
 import { annualSavingsFromProfile, formatEuros } from "@/lib/savingsUtils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
