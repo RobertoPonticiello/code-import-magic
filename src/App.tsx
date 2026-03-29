@@ -12,7 +12,7 @@ import ImpactStreak from "./pages/ImpactStreak";
 import ActionHistory from "./pages/ActionHistory";
 import Group from "./pages/Group";
 import EcoShop from "./pages/EcoShop";
-
+import EcoCoach from "./pages/EcoCoach";
 import Profile from "./pages/Profile";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
