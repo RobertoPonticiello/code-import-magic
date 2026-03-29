@@ -666,16 +666,21 @@ export default function CarbonMirror() {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-2 mb-6">
+        <div className="flex gap-2 mb-6 flex-wrap">
           <Button variant={tab === "quiz" ? "default" : "outline"} size="sm" onClick={() => setTab("quiz")} className="gap-2">
             <Leaf className="w-4 h-4" />Questionario CO₂
           </Button>
           <Button variant={tab === "bills" ? "default" : "outline"} size="sm" onClick={() => setTab("bills")} className="gap-2">
             <FileText className="w-4 h-4" />Bollette
           </Button>
+          <Button variant={tab === "history" ? "default" : "outline"} size="sm" onClick={() => setTab("history")} className="gap-2">
+            <History className="w-4 h-4" />Storico
+          </Button>
         </div>
 
-        {tab === "bills" ? (
+        {tab === "history" ? (
+          <HistoryView />
+        ) : tab === "bills" ? (
           <BillScanner />
         ) : (
           <>
