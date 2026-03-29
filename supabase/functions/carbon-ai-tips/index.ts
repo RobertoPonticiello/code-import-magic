@@ -39,9 +39,9 @@ Breve analisi personalizzata (2-3 frasi) con confronto alla media italiana (8.2 
 Usa emoji nelle liste, sii diretto e motivante. Rispondi in italiano. Basa i calcoli su fonti ISPRA e EEA.`;
 
     const userPrompt = `Ecco il mio profilo Carbon Mirror:
-- Trasporti: ${profile.transport.toFixed(1)} kg CO₂/sett (tipo: ${profile.transportType}, distanza: ${profile.transportDistance})
-- Alimentazione: ${profile.diet.toFixed(1)} kg CO₂/sett (dieta: ${profile.dietType}, spreco: ${profile.foodWaste})
-- Casa: ${profile.home.toFixed(1)} kg CO₂/sett (energia: ${profile.homeEnergy}, riscaldamento: ${profile.homeHeating})
+- Trasporti: ${profile.transport.toFixed(1)} kg CO₂/sett (mezzo: ${profile.transportType}, distanza: ${profile.transportDistance}, voli: ${profile.transportFlights || "N/D"})
+- Alimentazione: ${profile.diet.toFixed(1)} kg CO₂/sett (dieta: ${profile.dietType}, spreco: ${profile.foodWaste}, prodotti locali: ${profile.foodLocal || "N/D"})
+- Casa: ${profile.home.toFixed(1)} kg CO₂/sett (energia: ${profile.homeEnergy}, riscaldamento: ${profile.homeHeating}, acqua: ${profile.homeWater || "N/D"})
 - Consumi: ${profile.shopping.toFixed(1)} kg CO₂/sett (abbigliamento: ${profile.shoppingHabit})
 - TOTALE: ${profile.total.toFixed(1)} kg CO₂/sett
 - Media italiana: 8.2 kg/sett | Media europea: 7.5 kg/sett`;
