@@ -14,29 +14,37 @@ serve(async (req) => {
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
     const authHeader = req.headers.get("Authorization");
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey, {
-      global: { headers: { Authorization: authHeader || "" } },
-    });
-
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError || !user) {
+    if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Non autenticato" }), {
         status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims?.sub) {
+      return new Response(JSON.stringify({ error: "Non autenticato" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const userId = claimsData.claims.sub;
     const { messages } = await req.json();
 
     // Fetch all user context in parallel
     const [profileRes, statsRes, carbonRes, actionsRes, billsRes, reportsRes] = await Promise.all([
-      supabase.from("profiles").select("*").eq("user_id", user.id).maybeSingle(),
-      supabase.from("user_stats").select("*").eq("user_id", user.id).maybeSingle(),
-      supabase.from("carbon_profiles").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
-      supabase.from("completed_actions").select("action_title, action_category, co2_grams, completed_at, rating, action_difficulty").eq("user_id", user.id).order("completed_at", { ascending: false }).limit(50),
-      supabase.from("energy_bills").select("bill_type, provider, period_start, period_end, kwh, gas_smc, cost_euros, created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(10),
-      supabase.from("community_reports").select("type, title, severity, created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(10),
+      supabase.from("profiles").select("*").eq("user_id", userId).maybeSingle(),
+      supabase.from("user_stats").select("*").eq("user_id", userId).maybeSingle(),
+      supabase.from("carbon_profiles").select("*").eq("user_id", userId).order("created_at", { ascending: false }),
+      supabase.from("completed_actions").select("action_title, action_category, co2_grams, completed_at, rating, action_difficulty").eq("user_id", userId).order("completed_at", { ascending: false }).limit(50),
+      supabase.from("energy_bills").select("bill_type, provider, period_start, period_end, kwh, gas_smc, cost_euros, created_at").eq("user_id", userId).order("created_at", { ascending: false }).limit(10),
+      supabase.from("community_reports").select("type, title, severity, created_at").eq("user_id", userId).order("created_at", { ascending: false }).limit(10),
     ]);
 
     const profile = profileRes.data;
