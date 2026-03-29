@@ -16,7 +16,7 @@ export interface MemberBalance {
   net: number;
 }
 
-const STORAGE_KEY = "ecosignal_jackpot";
+const STORAGE_KEY = "greenclick_jackpot";
 
 function getStoredJackpots(): Record<string, JackpotConfig> {
   try {
@@ -29,7 +29,7 @@ function saveJackpots(data: Record<string, JackpotConfig>) {
 }
 
 // Mock balances stored per group
-const BALANCE_KEY = "ecosignal_balances";
+const BALANCE_KEY = "greenclick_balances";
 
 export function getStoredBalances(groupId: string): Record<string, MemberBalance> {
   try {

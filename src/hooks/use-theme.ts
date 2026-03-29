@@ -4,7 +4,7 @@ type Theme = "light" | "dark";
 
 function getInitialTheme(): Theme {
   if (typeof window === "undefined") return "light";
-  const stored = localStorage.getItem("ecosignal-theme") as Theme | null;
+  const stored = localStorage.getItem("greenclick-theme") as Theme | null;
   if (stored === "light" || stored === "dark") return stored;
   return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
@@ -14,7 +14,7 @@ export const useTheme = (): [Theme, () => void] => {
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark");
-    localStorage.setItem("ecosignal-theme", theme);
+    localStorage.setItem("greenclick-theme", theme);
   }, [theme]);
 
   const toggleTheme = () => {
