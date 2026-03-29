@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Wind, Shield, Thermometer, Droplets, Activity, MapPin, Loader2, Sparkles, Info, X } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -103,28 +104,27 @@ function ForecastChart({ forecast }: { forecast: AirQualityHourly[] }) {
   );
 }
 
-function PollutantInfoPanel({ pollutantKey, onClose }: { pollutantKey: string; onClose: () => void }) {
+function PollutantInfoDialog({ pollutantKey, pollutantName, onClose }: { pollutantKey: string; pollutantName: string; onClose: () => void }) {
   const info = pollutantInfo[pollutantKey];
   if (!info) return null;
   return (
-    <motion.div
-      initial={{ opacity: 0, height: 0 }}
-      animate={{ opacity: 1, height: "auto" }}
-      exit={{ opacity: 0, height: 0 }}
-      className="overflow-hidden"
-    >
-      <div className="mt-2 p-3 rounded-lg bg-accent/50 border border-border text-xs space-y-2">
-        <div className="flex justify-between items-start">
-          <p className="font-bold text-foreground">⚠️ Rischi per la salute</p>
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
-            <X className="w-3.5 h-3.5" />
-          </button>
+    <Dialog open onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-lg">{pollutantName}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 text-sm">
+          <div>
+            <p className="font-bold text-foreground mb-1">⚠️ Rischi per la salute</p>
+            <p className="text-muted-foreground leading-relaxed">{info.health}</p>
+          </div>
+          <div>
+            <p className="font-bold text-foreground mb-1">🛡️ Come proteggersi</p>
+            <p className="text-muted-foreground leading-relaxed">{info.protect}</p>
+          </div>
         </div>
-        <p className="text-muted-foreground leading-relaxed">{info.health}</p>
-        <p className="font-bold text-foreground">🛡️ Come proteggersi</p>
-        <p className="text-muted-foreground leading-relaxed">{info.protect}</p>
-      </div>
-    </motion.div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -358,9 +358,7 @@ export default function AirAlert() {
                     <div className={`h-full rounded-full transition-all ${isOk ? "bg-primary" : "bg-destructive"}`} style={{ width: `${pct}%` }} />
                   </div>
                   <p className="text-[9px] text-muted-foreground">Limite OMS: {p.limit} {p.unit}</p>
-                  <AnimatePresence>
-                    {isExpanded && <PollutantInfoPanel pollutantKey={p.key} onClose={() => setExpandedPollutant(null)} />}
-                  </AnimatePresence>
+                  {isExpanded && <PollutantInfoDialog pollutantKey={p.key} pollutantName={p.name} onClose={() => setExpandedPollutant(null)} />}
                 </CardContent>
               </Card>
             );
