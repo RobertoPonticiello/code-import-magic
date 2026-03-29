@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, ArrowRight, Car, UtensilsCrossed, Home, ShoppingBag, BarChart3, Leaf, Sparkles, Loader2, Euro } from "lucide-react";
-import { annualSavingsFromProfile, formatEuros, co2ToEurosByCategory } from "@/lib/savingsUtils";
+import { ArrowLeft, ArrowRight, Car, UtensilsCrossed, Home, ShoppingBag, BarChart3, Leaf, Sparkles, Loader2, Euro, Plane, Droplets, FileText } from "lucide-react";
+import { annualSavingsFromProfile, formatEuros } from "@/lib/savingsUtils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import ReactMarkdown from "react-markdown";
 import { useToast } from "@/hooks/use-toast";
+import BillScanner from "@/components/BillScanner";
 
 interface QuestionOption {
   label: string;
@@ -23,27 +24,41 @@ interface Question {
   options: QuestionOption[];
 }
 
+// Questions redesigned with multiplicative transport model
+// transport-type = emission factor (multiplier), transport-distance = base weekly emissions
+// Final transport CO2 = type * distance
 const questions: Question[] = [
   {
     id: "transport-type", category: "Trasporti", categoryIcon: <Car className="w-5 h-5" />,
     question: "Come ti sposti principalmente?",
     source: "Fonte: ISPRA 2024 — Fattori emissione trasporti Italia",
     options: [
-      { label: "Auto a benzina/diesel", value: 4.2, icon: "🚗" },
-      { label: "Auto ibrida/elettrica", value: 1.8, icon: "⚡" },
-      { label: "Mezzi pubblici", value: 0.9, icon: "🚇" },
-      { label: "Bici / A piedi", value: 0.1, icon: "🚲" },
+      { label: "Auto a benzina/diesel", value: 1.0, icon: "🚗" },
+      { label: "Auto ibrida/elettrica", value: 0.4, icon: "⚡" },
+      { label: "Mezzi pubblici", value: 0.22, icon: "🚇" },
+      { label: "Bici / A piedi", value: 0.01, icon: "🚲" },
     ],
   },
   {
     id: "transport-distance", category: "Trasporti", categoryIcon: <Car className="w-5 h-5" />,
     question: "Quanti km percorri in media al giorno?",
-    source: "Fonte: ISPRA — 120-180g CO₂/km auto media",
+    source: "Fonte: ISPRA — Media italiana ~30 km/giorno in auto",
     options: [
-      { label: "Meno di 5 km", value: 0.3, icon: "📍" },
-      { label: "5-20 km", value: 1.0, icon: "🛣️" },
-      { label: "20-50 km", value: 2.2, icon: "🏎️" },
-      { label: "Più di 50 km", value: 4.0, icon: "✈️" },
+      { label: "Meno di 5 km", value: 0.6, icon: "📍" },
+      { label: "5-20 km", value: 2.0, icon: "🛣️" },
+      { label: "20-50 km", value: 4.5, icon: "🏎️" },
+      { label: "Più di 50 km", value: 8.0, icon: "🚀" },
+    ],
+  },
+  {
+    id: "transport-flights", category: "Trasporti", categoryIcon: <Plane className="w-5 h-5" />,
+    question: "Quanti voli prendi all'anno?",
+    source: "Fonte: ICAO — ~0.255 kg CO₂/km per passeggero su volo medio",
+    options: [
+      { label: "Nessuno", value: 0, icon: "🚫" },
+      { label: "1-2 voli (corto raggio)", value: 0.8, icon: "✈️" },
+      { label: "3-5 voli", value: 2.0, icon: "🌍" },
+      { label: "Più di 5 voli", value: 4.5, icon: "🌏" },
     ],
   },
   {
@@ -69,6 +84,17 @@ const questions: Question[] = [
     ],
   },
   {
+    id: "food-local", category: "Alimentazione", categoryIcon: <UtensilsCrossed className="w-5 h-5" />,
+    question: "Compri prodotti locali e di stagione?",
+    source: "Fonte: ISMEA — Filiera corta riduce emissioni fino al 30%",
+    options: [
+      { label: "Sempre, km 0", value: -0.4, icon: "🏡" },
+      { label: "Spesso, mercati locali", value: -0.2, icon: "🥕" },
+      { label: "A volte", value: 0, icon: "🛒" },
+      { label: "Mai, tutto dal supermercato", value: 0.3, icon: "📦" },
+    ],
+  },
+  {
     id: "home-energy", category: "Casa", categoryIcon: <Home className="w-5 h-5" />,
     question: "Che tipo di energia usi in casa?",
     source: "Fonte: GSE 2024 — Mix energetico italiano",
@@ -91,6 +117,17 @@ const questions: Question[] = [
     ],
   },
   {
+    id: "home-water", category: "Casa", categoryIcon: <Droplets className="w-5 h-5" />,
+    question: "Come usi l'acqua in casa?",
+    source: "Fonte: ISTAT — Media italiana: 220L/giorno per persona",
+    options: [
+      { label: "Molto attento (docce brevi, lavatrice piena)", value: 0.2, icon: "💧" },
+      { label: "Abbastanza attento", value: 0.5, icon: "🚿" },
+      { label: "Non ci penso molto", value: 0.9, icon: "🛁" },
+      { label: "Uso abbondante", value: 1.3, icon: "🌊" },
+    ],
+  },
+  {
     id: "shopping", category: "Consumi", categoryIcon: <ShoppingBag className="w-5 h-5" />,
     question: "Quanto acquisti abbigliamento nuovo?",
     source: "Fonte: EEA — Fast fashion = 10% emissioni globali",
@@ -103,12 +140,24 @@ const questions: Question[] = [
   },
 ];
 
+// Compute emissions with multiplicative transport model
+function computeEmissions(answers: Record<string, number>) {
+  const transportType = answers["transport-type"] ?? 0;
+  const transportDist = answers["transport-distance"] ?? 0;
+  const transportFlights = answers["transport-flights"] ?? 0;
+  // Multiplicative: if you walk, multiplier ~0.01, so even 50km = ~0.08 kg
+  const transport = transportType * transportDist + transportFlights;
+
+  const diet = (answers["diet"] ?? 0) + (answers["food-waste"] ?? 0) + (answers["food-local"] ?? 0);
+  const home = (answers["home-energy"] ?? 0) + (answers["home-heating"] ?? 0) + (answers["home-water"] ?? 0);
+  const shopping = answers["shopping"] ?? 0;
+  const total = Math.max(0, transport + Math.max(0, diet) + home + shopping);
+
+  return { transport: Math.max(0, transport), diet: Math.max(0, diet), home, shopping, total };
+}
+
 function ResultsView({ answers, answerLabels }: { answers: Record<string, number>; answerLabels: Record<string, string> }) {
-  const transport = (answers["transport-type"] || 0) + (answers["transport-distance"] || 0);
-  const diet = (answers["diet"] || 0) + (answers["food-waste"] || 0);
-  const home = (answers["home-energy"] || 0) + (answers["home-heating"] || 0);
-  const shopping = answers["shopping"] || 0;
-  const total = transport + diet + home + shopping;
+  const { transport, diet, home, shopping, total } = computeEmissions(answers);
   const nationalAvg = 8.2;
   const europeanAvg = 7.5;
 
@@ -117,7 +166,6 @@ function ResultsView({ answers, answerLabels }: { answers: Record<string, number
   const [saved, setSaved] = useState(false);
   const { toast } = useToast();
 
-  // Save to DB (append to history)
   useEffect(() => {
     if (saved) return;
     const saveProfile = async () => {
@@ -141,10 +189,10 @@ function ResultsView({ answers, answerLabels }: { answers: Record<string, number
   }, [saved, transport, diet, home, shopping, total, answerLabels, toast]);
 
   const categories = [
-    { name: "Trasporti", value: transport, color: "bg-blue-500", icon: "🚗", pct: (transport / total) * 100 },
-    { name: "Alimentazione", value: diet, color: "bg-amber-500", icon: "🍽️", pct: (diet / total) * 100 },
-    { name: "Casa", value: home, color: "bg-emerald-500", icon: "🏠", pct: (home / total) * 100 },
-    { name: "Consumi", value: shopping, color: "bg-purple-500", icon: "🛍️", pct: (shopping / total) * 100 },
+    { name: "Trasporti", value: transport, color: "bg-blue-500", icon: "🚗", pct: total > 0 ? (transport / total) * 100 : 0 },
+    { name: "Alimentazione", value: diet, color: "bg-amber-500", icon: "🍽️", pct: total > 0 ? (diet / total) * 100 : 0 },
+    { name: "Casa", value: home, color: "bg-emerald-500", icon: "🏠", pct: total > 0 ? (home / total) * 100 : 0 },
+    { name: "Consumi", value: shopping, color: "bg-purple-500", icon: "🛍️", pct: total > 0 ? (shopping / total) * 100 : 0 },
   ];
 
   const comparison = total < europeanAvg ? "sotto" : "sopra";
@@ -158,10 +206,13 @@ function ResultsView({ answers, answerLabels }: { answers: Record<string, number
         transport, diet, home, shopping, total,
         transportType: answerLabels["transport-type"] || "",
         transportDistance: answerLabels["transport-distance"] || "",
+        transportFlights: answerLabels["transport-flights"] || "",
         dietType: answerLabels["diet"] || "",
         foodWaste: answerLabels["food-waste"] || "",
+        foodLocal: answerLabels["food-local"] || "",
         homeEnergy: answerLabels["home-energy"] || "",
         homeHeating: answerLabels["home-heating"] || "",
+        homeWater: answerLabels["home-water"] || "",
         shoppingHabit: answerLabels["shopping"] || "",
       };
 
@@ -176,7 +227,7 @@ function ResultsView({ answers, answerLabels }: { answers: Record<string, number
       });
 
       if (resp.status === 429) {
-        toast({ title: "Troppi richieste", description: "Riprova tra qualche secondo", variant: "destructive" });
+        toast({ title: "Troppe richieste", description: "Riprova tra qualche secondo", variant: "destructive" });
         setAiLoading(false);
         return;
       }
@@ -256,7 +307,7 @@ function ResultsView({ answers, answerLabels }: { answers: Record<string, number
               </div>
             </div>
           ))}
-          <p className="text-[10px] text-muted-foreground">Calcoli basati su fattori di emissione ISPRA 2024 e EEA 2023</p>
+          <p className="text-[10px] text-muted-foreground">Calcoli basati su fattori di emissione ISPRA 2024 e EEA 2023. Trasporti = mezzo × distanza.</p>
         </CardContent>
       </Card>
 
@@ -264,7 +315,7 @@ function ResultsView({ answers, answerLabels }: { answers: Record<string, number
       {(() => {
         const savings = annualSavingsFromProfile({ transport, diet, home, shopping, total });
         const isPositive = savings.totalAnnual >= 0;
-        const categories = [
+        const cats = [
           { label: "Trasporti", value: savings.byCategory.transport, icon: "🚗" },
           { label: "Alimentazione", value: savings.byCategory.diet, icon: "🍽️" },
           { label: "Casa", value: savings.byCategory.home, icon: "🏠" },
@@ -282,13 +333,11 @@ function ResultsView({ answers, answerLabels }: { answers: Record<string, number
                   {isPositive ? "+" : ""}{formatEuros(savings.totalAnnual)}
                 </p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  {isPositive
-                    ? "di risparmio annuo rispetto alla media italiana"
-                    : "di spesa extra annua rispetto alla media italiana"}
+                  {isPositive ? "di risparmio annuo rispetto alla media italiana" : "di spesa extra annua rispetto alla media italiana"}
                 </p>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                {categories.map((cat) => (
+                {cats.map((cat) => (
                   <div key={cat.label} className="bg-card rounded-lg p-3 text-center border border-border">
                     <span className="text-lg">{cat.icon}</span>
                     <p className={`text-sm font-bold mt-1 ${cat.value >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}`}>
@@ -323,7 +372,7 @@ function ResultsView({ answers, answerLabels }: { answers: Record<string, number
             <div key={item.label} className="flex items-center gap-3">
               <span className="text-sm font-medium text-foreground w-28 shrink-0">{item.label}</span>
               <div className="flex-1 h-6 bg-muted rounded-full overflow-hidden relative">
-                <motion.div initial={{ width: 0 }} animate={{ width: `${(item.value / 12) * 100}%` }} transition={{ duration: 0.8 }} className={`h-full rounded-full ${item.color} flex items-center justify-end pr-2`}>
+                <motion.div initial={{ width: 0 }} animate={{ width: `${Math.min((item.value / 15) * 100, 100)}%` }} transition={{ duration: 0.8 }} className={`h-full rounded-full ${item.color} flex items-center justify-end pr-2`}>
                   <span className="text-[10px] font-bold text-primary-foreground drop-shadow-sm">{item.value.toFixed(1)} kg</span>
                 </motion.div>
               </div>
@@ -381,6 +430,7 @@ function ResultsView({ answers, answerLabels }: { answers: Record<string, number
 }
 
 export default function CarbonMirror() {
+  const [tab, setTab] = useState<"quiz" | "bills">("quiz");
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [answerLabels, setAnswerLabels] = useState<Record<string, string>>({});
@@ -412,58 +462,74 @@ export default function CarbonMirror() {
   return (
     <div className="p-6 lg:p-8 max-w-2xl mx-auto">
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-        <div className="mb-8">
+        <div className="mb-6">
           <h1 className="text-3xl font-bold text-foreground tracking-tight">🪞 Carbon Mirror</h1>
-          <p className="text-muted-foreground mt-1">Scopri la tua impronta di carbonio settimanale in 2 minuti</p>
+          <p className="text-muted-foreground mt-1">Scopri la tua impronta di carbonio e traccia i tuoi consumi energetici</p>
         </div>
 
-        {!showResults && (
-          <div className="mb-6">
-            <div className="flex items-center justify-between text-sm text-muted-foreground mb-2">
-              <span className="flex items-center gap-2">
-                {questions[step].categoryIcon}
-                <span className="font-medium">{questions[step].category}</span>
-              </span>
-              <span>{step + 1}/{questions.length}</span>
-            </div>
-            <Progress value={((step + 1) / questions.length) * 100} className="h-2" />
-          </div>
-        )}
+        {/* Tabs */}
+        <div className="flex gap-2 mb-6">
+          <Button variant={tab === "quiz" ? "default" : "outline"} size="sm" onClick={() => setTab("quiz")} className="gap-2">
+            <Leaf className="w-4 h-4" />Questionario CO₂
+          </Button>
+          <Button variant={tab === "bills" ? "default" : "outline"} size="sm" onClick={() => setTab("bills")} className="gap-2">
+            <FileText className="w-4 h-4" />Bollette
+          </Button>
+        </div>
 
-        <AnimatePresence mode="wait">
-          {showResults ? (
-            <ResultsView answers={answers} answerLabels={answerLabels} />
-          ) : (
-            <motion.div key={step} initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }} transition={{ duration: 0.3 }}>
-              <Card>
-                <CardContent className="p-6 space-y-6">
-                  <h2 className="text-xl font-bold text-foreground">{questions[step].question}</h2>
-                  <div className="grid gap-3">
-                    {questions[step].options.map((opt) => (
-                      <button key={opt.label} onClick={() => handleSelect(opt.value, opt.label)}
-                        className={`flex items-center gap-4 p-4 rounded-xl border-2 text-left transition-all duration-200 ${
-                          selected === opt.value ? "border-primary bg-primary/5 shadow-sm" : "border-border hover:border-primary/30 hover:bg-accent"
-                        }`}>
-                        <span className="text-2xl">{opt.icon}</span>
-                        <span className="text-sm font-medium text-foreground">{opt.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                  <p className="text-[10px] text-muted-foreground">{questions[step].source}</p>
-                  <div className="flex justify-between pt-2">
-                    <Button variant="ghost" onClick={handleBack} disabled={step === 0}>
-                      <ArrowLeft className="w-4 h-4 mr-2" /> Indietro
-                    </Button>
-                    <Button onClick={handleNext} disabled={selected === null}>
-                      {step === questions.length - 1 ? "Vedi risultati" : "Avanti"}
-                      <ArrowRight className="w-4 h-4 ml-2" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {tab === "bills" ? (
+          <BillScanner />
+        ) : (
+          <>
+            {!showResults && (
+              <div className="mb-6">
+                <div className="flex items-center justify-between text-sm text-muted-foreground mb-2">
+                  <span className="flex items-center gap-2">
+                    {questions[step].categoryIcon}
+                    <span className="font-medium">{questions[step].category}</span>
+                  </span>
+                  <span>{step + 1}/{questions.length}</span>
+                </div>
+                <Progress value={((step + 1) / questions.length) * 100} className="h-2" />
+              </div>
+            )}
+
+            <AnimatePresence mode="wait">
+              {showResults ? (
+                <ResultsView answers={answers} answerLabels={answerLabels} />
+              ) : (
+                <motion.div key={step} initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }} transition={{ duration: 0.3 }}>
+                  <Card>
+                    <CardContent className="p-6 space-y-6">
+                      <h2 className="text-xl font-bold text-foreground">{questions[step].question}</h2>
+                      <div className="grid gap-3">
+                        {questions[step].options.map((opt) => (
+                          <button key={opt.label} onClick={() => handleSelect(opt.value, opt.label)}
+                            className={`flex items-center gap-4 p-4 rounded-xl border-2 text-left transition-all duration-200 ${
+                              selected === opt.value ? "border-primary bg-primary/5 shadow-sm" : "border-border hover:border-primary/30 hover:bg-accent"
+                            }`}>
+                            <span className="text-2xl">{opt.icon}</span>
+                            <span className="text-sm font-medium text-foreground">{opt.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                      <p className="text-[10px] text-muted-foreground">{questions[step].source}</p>
+                      <div className="flex justify-between pt-2">
+                        <Button variant="ghost" onClick={handleBack} disabled={step === 0}>
+                          <ArrowLeft className="w-4 h-4 mr-2" /> Indietro
+                        </Button>
+                        <Button onClick={handleNext} disabled={selected === null}>
+                          {step === questions.length - 1 ? "Vedi risultati" : "Avanti"}
+                          <ArrowRight className="w-4 h-4 ml-2" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </>
+        )}
       </motion.div>
     </div>
   );
