@@ -8,6 +8,8 @@ import { Progress } from "@/components/ui/progress";
 import ReactMarkdown from "react-markdown";
 import { useToast } from "@/hooks/use-toast";
 import BillScanner from "@/components/BillScanner";
+import ReceiptScanner from "@/components/ReceiptScanner";
+import { ShoppingCart } from "lucide-react";
 
 interface QuestionOption {
   label: string;
@@ -630,7 +632,7 @@ function HistoryView() {
 }
 
 export default function CarbonMirror() {
-  const [tab, setTab] = useState<"quiz" | "bills" | "history">("quiz");
+  const [tab, setTab] = useState<"quiz" | "bills" | "receipts" | "history">("quiz");
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [answerLabels, setAnswerLabels] = useState<Record<string, string>>({});
@@ -675,6 +677,9 @@ export default function CarbonMirror() {
           <Button variant={tab === "bills" ? "default" : "outline"} size="sm" onClick={() => setTab("bills")} className="gap-2">
             <FileText className="w-4 h-4" />Bollette
           </Button>
+          <Button variant={tab === "receipts" ? "default" : "outline"} size="sm" onClick={() => setTab("receipts")} className="gap-2">
+            <ShoppingCart className="w-4 h-4" />Scontrini
+          </Button>
           <Button variant={tab === "history" ? "default" : "outline"} size="sm" onClick={() => setTab("history")} className="gap-2">
             <History className="w-4 h-4" />Storico
           </Button>
@@ -682,6 +687,8 @@ export default function CarbonMirror() {
 
         {tab === "history" ? (
           <HistoryView />
+        ) : tab === "receipts" ? (
+          <ReceiptScanner />
         ) : tab === "bills" ? (
           <BillScanner />
         ) : (
