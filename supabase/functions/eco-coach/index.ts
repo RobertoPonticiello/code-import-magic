@@ -77,7 +77,7 @@ CONTESTO UTENTE COMPLETO:
 - XP totali: ${stats?.xp || 0}, Livello streak: ${stats?.streak_days || 0} giorni
 - Azioni totali completate: ${stats?.total_actions || 0}
 - CO₂ totale risparmiata: ${(stats?.total_co2_grams || 0)}g (${((stats?.total_co2_grams || 0) / 1000).toFixed(1)}kg)
-- Segnalazioni ambientali fatte: ${stats?.total_reports || 0}
+
 
 PROFILO CARBONIO (ultima compilazione):
 ${latestCarbon ? `- Trasporti: ${latestCarbon.transport} kg CO₂/sett
